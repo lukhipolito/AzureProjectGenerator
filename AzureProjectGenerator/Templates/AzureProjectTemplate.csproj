@@ -3,10 +3,10 @@
   <PropertyGroup>
     <PackageType>Template</PackageType>
     <PackageVersion>1.0</PackageVersion>
-    <PackageId>AdatumCorporation.Utility.Templates</PackageId>
+    <PackageId>AzureProjectTemplate</PackageId>
     <Title>AdatumCorporation Templates</Title>
     <Authors>Me</Authors>
-    <Description>Templates to use when creating an application for Adatum Corporation.</Description>
+    <Description>Templates that Azure Project Generator use when creating a solution.</Description>
     <PackageTags>dotnet-new;templates;contoso</PackageTags>
 
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" />
+    <Content Include=".\**\*" Exclude=".\**\bin\**;.\**\obj\**;.\bin\**;.\obj\**" />
     <Compile Remove="**\*" />
   </ItemGroup>
 

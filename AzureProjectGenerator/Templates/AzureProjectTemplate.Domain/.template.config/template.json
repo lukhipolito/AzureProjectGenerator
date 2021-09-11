@@ -5,6 +5,7 @@
   "identity": "AzureProjectTemplate.Domain",
   "name": "Azure project generator api",
   "shortName": "azureprojectdomain",
+  "sourceName": "AzureProjectTemplate",
   "tags": {
     "language": "C#",
     "type": "project"

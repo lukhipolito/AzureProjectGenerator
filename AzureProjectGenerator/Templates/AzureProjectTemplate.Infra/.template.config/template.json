@@ -5,6 +5,7 @@
   "identity": "AzureProjectTemplate.Infra",
   "name": "Azure project generator infra",
   "shortName": "azureprojectinfra",
+  "sourceName": "AzureProjectTemplate",
   "tags": {
     "language": "C#",
     "type": "project"
