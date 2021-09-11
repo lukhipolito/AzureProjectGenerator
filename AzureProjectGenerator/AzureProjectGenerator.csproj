@@ -6,12 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Templates\AzureProjectTemplate.API\.template.config\template.json" />
+    <Content Include="Templates\AzureProjectTemplate.Domain\.template.config\template.json" />
+    <Content Include="Templates\AzureProjectTemplate.Infra\.template.config\template.json" />
     <Content Include="working\templates\consoleasync\.template.config\template.json" />
     <Content Include="working\templates\extensions\.template.config\template.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="test\" />
+    <None Include="Templates\AzureProjectTemplate.API\AzureProjectTemplate.API.csproj" />
+    <None Include="Templates\AzureProjectTemplate.Domain\AzureProjectTemplate.Domain.csproj" />
+    <None Include="Templates\AzureProjectTemplate.Infra\AzureProjectTemplate.Infra.csproj" />
+    <None Include="Templates\AzureProjectTemplate.csproj" />
   </ItemGroup>
 
 </Project>

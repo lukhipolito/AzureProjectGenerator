@@ -11,3 +11,4 @@ namespace AzureProjectGenerator.working.templates.extensions
             return new string(tempArray);
         }
     }
+}

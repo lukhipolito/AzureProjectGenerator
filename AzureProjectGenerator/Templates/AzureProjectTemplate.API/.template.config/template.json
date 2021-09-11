@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Lucas Hipólito",
+  "classifications": [ "Web", "Azure", "Api" ],
+  "identity": "AzureProjectTemplate.API",
+  "name": "Azure project generator api",
+  "shortName": "azureprojectapi",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  }
+}

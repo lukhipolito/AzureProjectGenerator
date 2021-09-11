@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Me",
+  "classifications": [ "Web", "Azure", "Infra" ],
+  "identity": "AzureProjectTemplate.Infra",
+  "name": "Azure project generator infra",
+  "shortName": "azureprojectinfra",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  }
+}

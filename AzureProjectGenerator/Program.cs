@@ -39,6 +39,11 @@ namespace AzureProjectGenerator
              * 
              * LINUX:
              * dotnet new -i ./
+             * 
+             * on the parent of templates folder
+             * dotnet new console -n {name} -o .
+             * dotnet pack
+             * dotnet new -i PATH_TO_NUPKG_FILE
              */
         }
     }

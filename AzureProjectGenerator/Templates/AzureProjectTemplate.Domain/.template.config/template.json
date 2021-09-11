@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Me",
+  "classifications": [ "Web", "Azure", "Domain" ],
+  "identity": "AzureProjectTemplate.Domain",
+  "name": "Azure project generator api",
+  "shortName": "azureprojectdomain",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  }
+}
