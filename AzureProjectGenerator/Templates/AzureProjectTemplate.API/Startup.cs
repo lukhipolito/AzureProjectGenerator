@@ -51,14 +51,12 @@ namespace AzureProjectTemplate.API
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            WebHostEnvironment = webHostEnvironment;
         }
 
         public IConfiguration Configuration { get; }
-        public IWebHostEnvironment WebHostEnvironment { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -73,7 +71,7 @@ namespace AzureProjectTemplate.API
                 options.AllowSynchronousIO = true;
             });
 
-            services.AddControllers().AddNewtonsoftJson();
+            services.AddControllers();
             services.AddMvc(options =>
             {
                 options.Filters.Add<DomainNotificationFilter>();
@@ -123,78 +121,45 @@ namespace AzureProjectTemplate.API
 
             this.RegisterHttpClient(services);
 
-            if (PlatformServices.Default.Application.ApplicationName != "testhost")
-            {
-                var healthCheck = services.AddHealthChecksUI(setupSettings: setup =>
-                {
-                    setup.DisableDatabaseMigrations();
-                    setup.MaximumHistoryEntriesPerEndpoint(6);
-                    setup.AddWebhookNotification("Teams", Configuration["Webhook:Teams"],
-                        payload: File.ReadAllText(Path.Combine(".", "MessageCard", "ServiceDown.json")),
-                        restorePayload: File.ReadAllText(Path.Combine(".", "MessageCard", "ServiceRestore.json")),
-                        customMessageFunc: report =>
-                            {
-                                var failing = report.Entries.Where(e => e.Value.Status == UIHealthStatus.Unhealthy);
-                                return $"{AppDomain.CurrentDomain.FriendlyName}: {failing.Count()} healthchecks are failing";
-                            }
-                        );
-                }).AddInMemoryStorage();
+            
+            //services.AddOpenApiDocument(document =>
+            //{
+            //    document.DocumentName = "v1";
+            //    document.Version = "v1";
+            //    document.Title = "AzureProjectTemplate API";
+            //    document.Description = "API de AzureProjectTemplate";
+            //    document.OperationProcessors.Add(new OperationSecurityScopeProcessor("JWT"));
+            //    document.AddSecurity("JWT", Enumerable.Empty<string>(), new OpenApiSecurityScheme
+            //    {
+            //        Type = OpenApiSecuritySchemeType.ApiKey,
+            //        Name = HeaderNames.Authorization,
+            //        Description = "Token de autenticação via SSO",
+            //        In = OpenApiSecurityApiKeyLocation.Header
+            //    });
 
-                var builder = healthCheck.Services.AddHealthChecks();
-
-                //500 mb
-                builder.AddProcessAllocatedMemoryHealthCheck(500 * 1024 * 1024, "Process Memory", tags: new[] { "self" });
-                //500 mb
-                builder.AddPrivateMemoryHealthCheck(1500 * 1024 * 1024, "Private memory", tags: new[] { "self" });
-
-                builder.AddSqlServer(Configuration["ConnectionStrings:CustomerDB"], tags: new[] { "services" });
-
-                //dotnet add <Project> package AspNetCore.HealthChecks.OpenIdConnectServer
-                builder.AddIdentityServer(new Uri(Configuration["AppID:Authority"]), "SSO App", tags: new[] { "services" });
-
-                builder.AddApplicationInsightsPublisher();
-            }
-
-            if (!WebHostEnvironment.IsProduction())
-            {
-                services.AddOpenApiDocument(document =>
-                {
-                    document.DocumentName = "v1";
-                    document.Version = "v1";
-                    document.Title = "Mais.Marketplace API";
-                    document.Description = "API de Mais.Marketplace";
-                    document.OperationProcessors.Add(new OperationSecurityScopeProcessor("JWT"));
-                    document.AddSecurity("JWT", Enumerable.Empty<string>(), new OpenApiSecurityScheme
-                    {
-                        Type = OpenApiSecuritySchemeType.ApiKey,
-                        Name = HeaderNames.Authorization,
-                        Description = "Token de autenticação via SSO",
-                        In = OpenApiSecurityApiKeyLocation.Header
-                    });
-
-                    document.PostProcess = (configure) =>
-                    {
-                        configure.Info.TermsOfService = "None";
-                        configure.Info.Contact = new OpenApiContact()
-                        {
-                            Name = "Squad",
-                            Email = "squad@xyz.com",
-                            Url = "exemplo.xyz.com"
-                        };
-                        configure.Info.License = new OpenApiLicense()
-                        {
-                            Name = "Exemplo",
-                            Url = "exemplo.xyz.com"
-                        };
-                    };
+            //    document.PostProcess = (configure) =>
+            //    {
+            //        configure.Info.TermsOfService = "None";
+            //        configure.Info.Contact = new OpenApiContact()
+            //        {
+            //            Name = "Squad",
+            //            Email = "squad@xyz.com",
+            //            Url = "exemplo.xyz.com"
+            //        };
+            //        configure.Info.License = new OpenApiLicense()
+            //        {
+            //            Name = "Exemplo",
+            //            Url = "exemplo.xyz.com"
+            //        };
+            //    };
 
 
-                });
-            }
+            //});
 
-            services.AddAutoMapper(typeof(Startup));
+
+            //services.AddAutoMapper(typeof(Startup));
             services.AddHttpContextAccessor();
-            services.AddApplicationInsightsTelemetry();
+            //services.AddApplicationInsightsTelemetry();
 
             this.RegisterServices(services);
             this.RegisterDatabaseServices(services);
@@ -215,11 +180,10 @@ namespace AzureProjectTemplate.API
             app.UseHttpsRedirection();
             app.UseResponseCompression();
 
-            if (!env.IsProduction())
-            {
-                app.UseOpenApi();
-                app.UseSwaggerUi3();
-            }
+
+            //app.UseOpenApi();
+            //app.UseSwaggerUi3();
+
 
             app.UseAuthorization();
             app.UseAuthentication();
@@ -227,7 +191,7 @@ namespace AzureProjectTemplate.API
 
             app.UseExceptionHandler(new ExceptionHandlerOptions
             {
-                ExceptionHandler = new ErrorHandlerMiddleware(options, env).Invoke
+                ExceptionHandler = new ErrorHandlerMiddleware(options).Invoke
             });
 
             app.UseEndpoints(endpoints =>
@@ -258,18 +222,10 @@ namespace AzureProjectTemplate.API
         private void RegisterHttpClient(IServiceCollection services)
         {
             services.AddHttpClient<IViaCEPService, ViaCEPService>((s, c) =>
-                        {
-                            c.BaseAddress = new Uri(Configuration["API:ViaCEP"]);
-                            c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        }).AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.OrResult(response =>
-                                (int)response.StatusCode == (int)HttpStatusCode.InternalServerError)
-                          .WaitAndRetryAsync(3, retry =>
-                               TimeSpan.FromSeconds(Math.Pow(2, retry)) +
-                               TimeSpan.FromMilliseconds(new Random(9876).Next(0, 100))))
-                          .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.CircuitBreakerAsync(
-                               handledEventsAllowedBeforeBreaking: 3,
-                               durationOfBreak: TimeSpan.FromSeconds(30)
-                        ));
+                {
+                    c.BaseAddress = new Uri(Configuration["API:ViaCEP"]);
+                    c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                });
         }
 
         protected virtual void RegisterServices(IServiceCollection services)
@@ -302,8 +258,6 @@ namespace AzureProjectTemplate.API
         {
             // if (PlatformServices.Default.Application.ApplicationName != "testhost")
             // {
-                services.AddDbContext<EntityContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("CustomerDB")));
                 services.AddSingleton<DbConnection>(conn => new SqlConnection(Configuration.GetConnectionString("CustomerDB")));
                 services.AddScoped<DapperContext>();
             // }

@@ -1,6 +1,6 @@
 ﻿using FluentValidation.Results;
-using System.Collections.Generic;
 using AzureProjectTemplate.Domain.Notifications;
+using System.Collections.Generic;
 
 namespace AzureProjectTemplate.Domain.Interfaces.Notifications
 {

@@ -24,7 +24,7 @@ namespace AzureProjectTemplate.API
                     var clientId = $"{buildConfig["{CLIENT_ID}"]}";
                     var clientSecret = $"{buildConfig["{CLIENT_SECRET}"]}";
 
-                    config.AddAzureKeyVault(vaultUrl, clientId, clientSecret);
+                    //config.AddAzureKeyVault(vaultUrl, clientId, clientSecret);
                 }
             })
             .ConfigureWebHostDefaults(webBuilder =>

@@ -1,27 +1,23 @@
-﻿using Microsoft.ApplicationInsights;
+﻿using AzureProjectTemplate.API.Settings;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
-using AzureProjectTemplate.API.Settings;
 
 namespace AzureProjectTemplate.API.Middlewares
 {
     public class ErrorHandlerMiddleware
     {
         private readonly ApplicationInsightsSettings _applicationInsights;
-        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ErrorHandlerMiddleware(IOptions<ApplicationInsightsSettings> options, IWebHostEnvironment webHostEnvironment)
+        public ErrorHandlerMiddleware(IOptions<ApplicationInsightsSettings> options)
         {
             _applicationInsights = options.Value;
-            _webHostEnvironment = webHostEnvironment;
         }
 
         public async Task Invoke(HttpContext context)
@@ -48,11 +44,6 @@ namespace AzureProjectTemplate.API.Middlewares
                     $"{ex.Message}" :
                     $"{ex.Message} | {ex.InnerException}"
             };
-
-            if (_webHostEnvironment.IsDevelopment())
-            {
-                problemDetails.Detail += $": {ex.StackTrace}";
-            }
 
             context.Response.StatusCode = problemDetails.Status.Value;
             context.Response.ContentType = "application/problem+json";

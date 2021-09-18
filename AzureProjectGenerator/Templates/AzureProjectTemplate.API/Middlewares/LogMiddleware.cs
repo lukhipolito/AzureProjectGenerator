@@ -50,7 +50,7 @@ namespace AzureProjectTemplate.API.Middlewares
             {
                 request.EnableBuffering(bufferThreshold: 1024 * 64);
 
-                body = await GetStringFromPipeReader(request.BodyReader);
+                body = await GetStringFromPipeReader(PipeReader.Create(request.Body));
 
                 request.Body.Seek(0, SeekOrigin.Begin);
             }

@@ -6,16 +6,37 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Templates\AzureProjectTemplate.API\.template.config\template.json" />
-    <Content Include="Templates\AzureProjectTemplate.Domain\.template.config\template.json" />
-    <Content Include="Templates\AzureProjectTemplate.Infra\.template.config\template.json" />
+    <Compile Remove="Templates\**" />
+    <EmbeddedResource Remove="Templates\**" />
+    <None Remove="Templates\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Templates\AzureProjectTemplate.API\AzureProjectTemplate.API.csproj" />
-    <None Include="Templates\AzureProjectTemplate.Domain\AzureProjectTemplate.Domain.csproj" />
-    <None Include="Templates\AzureProjectTemplate.Infra\AzureProjectTemplate.Infra.csproj" />
-    <None Include="Templates\AzureProjectTemplate.csproj" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI" Version="5.0.1" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="5.0.1" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Core" Version="5.0.1" />
+    <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="Dapper" Version="2.0.90" />
+    <PackageReference Include="FluentValidation" Version="10.3.3" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.18.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageReference Include="Microsoft.AspNetCore.ResponseCompression" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.IIS" Version="2.2.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.9" />
+    <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Logging" Version="6.12.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NSwag.Annotations" Version="13.13.2" />
+    <PackageReference Include="NSwag.Generation" Version="13.13.2" />
+    <PackageReference Include="Polly" Version="7.2.2" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+    <PackageReference Include="System.IO" Version="4.3.0" />
+    <PackageReference Include="System.IO.Pipelines" Version="5.0.1" />
   </ItemGroup>
 
 </Project>

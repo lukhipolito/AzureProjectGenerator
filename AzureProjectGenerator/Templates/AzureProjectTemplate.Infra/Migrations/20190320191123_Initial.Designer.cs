@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using AzureProjectTemplate.Mais.Marketplace.Infra.Context;
+using AzureProjectTemplate.Infra.Context;
 
-namespace AzureProjectTemplate.Mais.Marketplace.Infra.Migrations
+namespace AzureProjectTemplate.AzureProjectTemplate.Infra.Migrations
 {
     [DbContext(typeof(EntityContext))]
     [Migration("20190320191123_Initial")]
     partial class Initial
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected  void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,7 +21,7 @@ namespace AzureProjectTemplate.Mais.Marketplace.Infra.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("AzureProjectTemplate.Mais.Marketplace.Domain.Models.Address", b =>
+            modelBuilder.Entity("AzureProjectTemplate.AzureProjectTemplate.Domain.Models.Address", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -37,7 +37,7 @@ namespace AzureProjectTemplate.Mais.Marketplace.Infra.Migrations
                     b.ToTable("Address","dbo");
                 });
 
-            modelBuilder.Entity("AzureProjectTemplate.Mais.Marketplace.Domain.Models.Customer", b =>
+            modelBuilder.Entity("AzureProjectTemplate.AzureProjectTemplate.Domain.Models.Customer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -60,9 +60,9 @@ namespace AzureProjectTemplate.Mais.Marketplace.Infra.Migrations
                     b.ToTable("Customer","dbo");
                 });
 
-            modelBuilder.Entity("AzureProjectTemplate.Mais.Marketplace.Domain.Models.Customer", b =>
+            modelBuilder.Entity("AzureProjectTemplate.AzureProjectTemplate.Domain.Models.Customer", b =>
                 {
-                    b.HasOne("AzureProjectTemplate.Mais.Marketplace.Domain.Models.Address", "Address")
+                    b.HasOne("AzureProjectTemplate.AzureProjectTemplate.Domain.Models.Address", "Address")
                         .WithMany("Customers")
                         .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.Restrict);
