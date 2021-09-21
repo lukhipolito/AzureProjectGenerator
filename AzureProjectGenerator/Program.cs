@@ -1,16 +1,13 @@
-﻿using CommandLine;
-using System;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Management.Automation;
 using System.Runtime.InteropServices;
 
 namespace AzureProjectGenerator
 {
     internal class Program
     {
-        public interface ICommand
-        {
-            void Execute();
-        }
-
         private class OsConfig
         {
             internal bool isWindows;
@@ -32,22 +29,75 @@ namespace AzureProjectGenerator
             Console.WriteLine($"Is windows: {osConfig.isWindows}");
             Console.WriteLine($"Is linux: {osConfig.isLinux}");
             Console.WriteLine($"Is mac: {osConfig.isMac}");
-        }
 
-        [Verb("generate", isDefault:true, HelpText = "Generates the template for the web project to be published on Azure")]
-        public class Generate : ICommand
-        {
-            [Option('n', "name", Required = true, HelpText = "The name that the projects will have")]
-            public string Name { get; set; }
-            public void Execute()
+            string name = string.Empty;
+            string output = string.Empty;
+            for (int i=0; i < args.Length; i++)
             {
-                var osConfig = new OsConfig();
-                Console.WriteLine("Executing Push");
+                string arg = args[i];
+                switch (arg)
+                {
+                    case "-n":
+                    case "--name":
+                        name = args[i + 1];
+                        break;
+                    case "-o":
+                    case "--output":
+                        output = args[i + 1];
+                        break;
+                    default:
+                        break;
+                }
             }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                Console.WriteLine("'Name' is required");
+            }
+
+            if (string.IsNullOrEmpty(output))
+            {
+                Console.WriteLine("'Output' is required");
+            }
+
+            if (string.IsNullOrEmpty(name)
+                && string.IsNullOrEmpty(output))
+            {
+                Console.WriteLine("No valid arguments were found");
+                return;
+            }
+
+            if(string.IsNullOrEmpty(name) 
+                || string.IsNullOrEmpty(output))
+            {
+                return;
+            }
+
+            GeneratePack(osConfig, name, output);
         }
 
-        private void GeneratePack(OsConfig os)
+        private static void GeneratePack(OsConfig os, string name, string output)
         {
+            string path = Directory.GetCurrentDirectory();
+            path = path.Split("bin")[0] + "Templates";
+
+            if (os.isWindows)
+            {
+                PowerShell ps = PowerShell.Create();
+                ps.AddCommand("Get-Process");
+                ps.Invoke();
+            }
+            else
+            {
+                var psi = new ProcessStartInfo();
+                psi.FileName = "/bin/bash";
+                psi.Arguments = "";
+                psi.RedirectStandardOutput = true;
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+
+                using var process = Process.Start(psi);
+            }
             /*
              * on the template folder
              * 

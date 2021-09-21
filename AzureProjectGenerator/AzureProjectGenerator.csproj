@@ -16,6 +16,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="5.0.1" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.Core" Version="5.0.1" />
     <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="Cake.Powershell" Version="1.0.1" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="Dapper" Version="2.0.90" />
     <PackageReference Include="FluentValidation" Version="10.3.3" />

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AzureProjectGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "-n testete -o c:\\documents"
+    }
+  }
+}
