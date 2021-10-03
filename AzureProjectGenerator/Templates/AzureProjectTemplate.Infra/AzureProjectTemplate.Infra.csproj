@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Wiz.Mais.Marketplace.Domain\Wiz.Mais.Marketplace.Domain.csproj" />
+    <ProjectReference Include="..\AzureProjectTemplate.Domain\AzureProjectTemplate.Domain.csproj" />
   </ItemGroup>
   
 </Project>

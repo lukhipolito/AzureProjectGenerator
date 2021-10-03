@@ -78,41 +78,74 @@ namespace AzureProjectGenerator
 
         private static void GeneratePack(OsConfig os, string name, string output)
         {
-            string path = Directory.GetCurrentDirectory();
-            path = path.Split("bin")[0] + "Templates";
+            string templatesPath = Directory.GetCurrentDirectory();
+            templatesPath = templatesPath.Split("bin")[0] + "Templates";
+
 
             if (os.isWindows)
             {
+                string script = $@"cd {templatesPath}
+                        dotnet pack
+                        dotnet new -i .\bin\Debug\AzureProjectTemplate.1.0.0.nupkg
+                        cd {output}
+                        mkdir {name}.API
+                        cd {name}.API
+                        dotnet new azureprojectapi -n {name}
+                        cd ..
+                        mkdir {name}.Domain
+                        cd {name}.Domain
+                        dotnet new azureprojectdomain -n {name}
+                        cd ..
+                        mkdir {name}.Infra
+                        cd {name}.Infra
+                        dotnet new azureprojectinfra -n {name}
+                        cd ..
+                        dotnet new sln -n {name}
+                        dotnet sln add {name}.API/{name}.API.csproj
+                        dotnet sln add {name}.Domain/{name}.Domain.csproj
+                        dotnet sln add {name}.Infra/{name}.Infra.csproj";
+
                 PowerShell ps = PowerShell.Create();
-                ps.AddCommand("Get-Process");
+
+                ps.AddScript(script);
                 ps.Invoke();
             }
             else
             {
-                var psi = new ProcessStartInfo();
-                psi.FileName = "/bin/bash";
-                psi.Arguments = "";
-                psi.RedirectStandardOutput = true;
-                psi.UseShellExecute = false;
-                psi.CreateNoWindow = true;
+                string script = $@"cd {templatesPath}
+                        dotnet pack
+                        dotnet new -i ./bin/Debug/AzureProjectTemplate.1.0.0.nupkg
+                        cd {output}
+                        mkdir {name}.API
+                        cd {name}.API
+                        dotnet new azureprojectapi -n {name}
+                        cd ..
+                        mkdir {name}.Domain
+                        cd {name}.Domain
+                        dotnet new azureprojectdomain -n {name}
+                        cd ..
+                        mkdir {name}.Infra
+                        cd {name}.Infra
+                        dotnet new azureprojectinfra -n {name}
+                        cd ..
+                        dotnet new sln -n {name}
+                        dotnet sln add {name}.API/{name}.API.csproj
+                        dotnet sln add {name}.Domain/{name}.Domain.csproj
+                        dotnet sln add {name}.Infra/{name}.Infra.csproj";
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = script,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
 
                 using var process = Process.Start(psi);
-            }
-            /*
-             * on the template folder
-             * 
-             * WINDOWS:
-             * dotnet new -i .\
-             * 
-             * 
-             * LINUX:
-             * dotnet new -i ./
-             * 
-             * on the parent of templates folder
-             * dotnet new console -n {name} -o .
-             * dotnet pack
-             * dotnet new -i PATH_TO_NUPKG_FILE
-             */
+                string result = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+            } 
         }
     }
 }
