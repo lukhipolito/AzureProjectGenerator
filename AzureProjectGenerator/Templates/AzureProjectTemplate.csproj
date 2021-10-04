@@ -4,8 +4,8 @@
     <PackageType>Template</PackageType>
     <PackageVersion>1.0</PackageVersion>
     <PackageId>AzureProjectTemplate</PackageId>
-    <Title>AdatumCorporation Templates</Title>
-    <Authors>Me</Authors>
+    <Title>AzureProjectGenerator Templates</Title>
+    <Authors>Lucas Hipólito</Authors>
     <Description>Templates that Azure Project Generator use when creating a solution.</Description>
     <PackageTags>dotnet-new;templates;contoso</PackageTags>
 
