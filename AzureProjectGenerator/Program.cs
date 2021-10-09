@@ -27,8 +27,11 @@ namespace AzureProjectGenerator
 
         private static void Main(string[] args)
         {
+            var logFactory = new LoggerFactory();
 
-            var osConfig = new OsConfig();
+            var logger = logFactory.CreateLogger<Type>();
+
+            var osConfig = new OsConfig(logger);
             Console.WriteLine("Current OS: " + RuntimeInformation.OSDescription);
             Console.WriteLine($"Is windows: {osConfig.isWindows}");
             Console.WriteLine($"Is linux: {osConfig.isLinux}");
