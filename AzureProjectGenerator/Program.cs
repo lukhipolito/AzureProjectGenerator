@@ -1,4 +1,5 @@
 ﻿using AzureProjectGenerator.Utility;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -14,11 +15,13 @@ namespace AzureProjectGenerator
             internal bool isWindows;
             internal bool isMac;
             internal bool isLinux;
-            public OsConfig()
+            internal ILogger logger;
+            public OsConfig(ILogger _logger)
             {
                 isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                 isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
                 isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+                logger = _logger;
             }
         }
 
@@ -134,7 +137,7 @@ namespace AzureProjectGenerator
                         dotnet sln add {name}.Domain/{name}.Domain.csproj
                         dotnet sln add {name}.Infra/{name}.Infra.csproj";
 
-                _ = script.Bash().Result;
+                _ = script.Bash(os.logger).Result;
             } 
         }
     }
