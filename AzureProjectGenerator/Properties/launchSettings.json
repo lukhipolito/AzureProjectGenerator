@@ -2,7 +2,11 @@
   "profiles": {
     "AzureProjectGenerator": {
       "commandName": "Project",
-      "commandLineArgs": "-n testete -o c:\\documents"
+      "commandLineArgs": "-n test -o C:\\Users\\lucashi\\Documents\\test"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
     }
   }
 }

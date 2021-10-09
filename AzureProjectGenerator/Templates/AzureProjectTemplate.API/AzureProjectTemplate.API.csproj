@@ -35,7 +35,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AzureProjectTemplate.Domain\AzureProjectTemplate.Domain.csproj" />
     <ProjectReference Include="..\AzureProjectTemplate.Infra\AzureProjectTemplate.Infra.csproj" />
-  </ItemGroup>
+  </ItemGroup> 
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
