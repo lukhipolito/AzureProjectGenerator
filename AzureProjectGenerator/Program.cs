@@ -135,7 +135,7 @@ namespace AzureProjectGenerator
 
                 var psi = new ProcessStartInfo
                 {
-                    FileName = "/bin/bash",
+                    FileName = "bash",
                     Arguments = script,
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
