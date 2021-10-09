@@ -140,7 +140,7 @@ namespace AzureProjectGenerator
                         dotnet sln add {name}.Domain/{name}.Domain.csproj            \
                         dotnet sln add {name}.Infra/{name}.Infra.csproj";
 
-                script.Bash(os.logger);
+                script.Bash(os.logger).Wait();
             } 
         }
     }
