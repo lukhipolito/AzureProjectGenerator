@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AzureProjectGenerator.Utility;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Management.Automation;
@@ -133,18 +134,7 @@ namespace AzureProjectGenerator
                         dotnet sln add {name}.Domain/{name}.Domain.csproj
                         dotnet sln add {name}.Infra/{name}.Infra.csproj";
 
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "sh",
-                    Arguments = script,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using var process = Process.Start(psi);
-                string result = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
+                _ = script.Bash().Result;
             } 
         }
     }
