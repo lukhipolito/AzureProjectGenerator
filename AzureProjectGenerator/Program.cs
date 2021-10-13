@@ -143,7 +143,7 @@ namespace AzureProjectGenerator
                 _ = shell.Run("dotnet", "new", "azureprojectapi", "-n", name)
                     .AsResult().Result;
 
-                _ = shell.Run("cd..")
+                _ = shell.Run("cd", "..")
                     .AsResult().Result;
 
                 _ = shell.Run("mkdir", $"{name}.Domain")
@@ -155,7 +155,7 @@ namespace AzureProjectGenerator
                 _ = shell.Run("dotnet", "new", "azureprojectdomain", "-n", name)
                     .AsResult().Result;
 
-                _ = shell.Run("cd..")
+                _ = shell.Run("cd", "..")
                     .AsResult().Result;
 
                 _ = shell.Run("mkdir", $"{name}.Infra")
@@ -167,7 +167,7 @@ namespace AzureProjectGenerator
                 _ = shell.Run("dotnet", "new", "azureprojectinfra", "-n", name)
                     .AsResult().Result;
 
-                _ = shell.Run("cd..")
+                _ = shell.Run("cd", "..")
                     .AsResult().Result;
 
                 _ = shell.Run("dotnet", "new", "sln", "-n", name)
