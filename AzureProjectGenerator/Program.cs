@@ -123,6 +123,13 @@ namespace AzureProjectGenerator
                 templatesPath = templatesPath.Split("bin")[0] + "/Templates";
                 var shell = new CShell();
                 Console.WriteLine("templatesPath = " + templatesPath);
+
+                _ = shell.Run("cd", "..")
+                   .AsResult().Result;
+
+                _ = shell.Run("ls")
+                  .AsResult().Result;
+
                 _ = shell.Run("cd", templatesPath)
                     .AsResult().Result;
 
