@@ -121,6 +121,7 @@ namespace AzureProjectGenerator
             else
             {
                 var shell = new CShell();
+                Console.WriteLine("templatesPath = " + templatesPath);
                 _ = shell.Run("cd", templatesPath)
                     .AsResult().Result;
 
