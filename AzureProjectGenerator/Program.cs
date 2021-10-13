@@ -1,7 +1,8 @@
 ﻿using AzureProjectGenerator.Utility;
+using CShellNet;
+using Medallion.Shell;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Management.Automation;
 using System.Runtime.InteropServices;
@@ -119,28 +120,67 @@ namespace AzureProjectGenerator
             }
             else
             {
-                string script = @$"cd {templatesPath}										          \
-                                    dotnet pack                                                       \
-                                    dotnet new -i ./bin/Debug/AzureProjectTemplate.1.0.0.nupkg        \
-                                    cd {output}                                                       \
-                                    mkdir {name}.API                                                  \
-                                    cd {name}.API                                                     \
-                                    dotnet new azureprojectapi -n {name}                              \
-                                    cd..                                                              \
-                                    mkdir {name}.Domain                                               \
-                                    cd {name}.Domain                                                  \
-                                    dotnet new azureprojectdomain -n {name}                           \
-                                    cd..                                                              \
-                                                                                     \
-                                    cd {name}.Infra                                                   \
-                                    dotnet new azureprojectinfra -n {name}                            \
-                                    cd..                                                              \
-                                    dotnet new sln -n {name}                                          \
-                                    dotnet sln add {name}.API/{name}.API.csproj                       \
-                                    dotnet sln add {name}.Domain/{name}.Domain.csproj                 \
-                                    dotnet sln add {name}.Infra/{name}.Infra.csproj";
+                var shell = new CShell();
+                _ = shell.Run("cd", templatesPath)
+                    .AsResult().Result;
 
-                script.Bash(os.logger).Wait();
+                _ = shell.Run("dotnet", "pack")
+                    .AsResult().Result;
+
+                _ = shell.Run("dotnet", "new", "-i", "./bin/Debug/AzureProjectTemplate.1.0.0.nupkg")
+                    .AsResult().Result;
+
+                _ = shell.Run("cd", output)
+                    .AsResult().Result;
+                
+                _ = shell.Run("mkdir", $"{name}.API" )
+                    .AsResult().Result;
+
+                _ = shell.Run("cd", $"{name}.API")
+                    .AsResult().Result;
+
+                _ = shell.Run("dotnet", "new", "azureprojectapi", "-n", name)
+                    .AsResult().Result;
+
+                _ = shell.Run("cd..")
+                    .AsResult().Result;
+
+                _ = shell.Run("mkdir", $"{name}.Domain")
+                    .AsResult().Result;
+
+                _ = shell.Run("cd", $"{name}.Domain")
+                    .AsResult().Result;
+
+                _ = shell.Run("dotnet", "new", "azureprojectdomain", "-n", name)
+                    .AsResult().Result;
+
+                _ = shell.Run("cd..")
+                    .AsResult().Result;
+
+                _ = shell.Run("mkdir", $"{name}.Infra")
+                    .AsResult().Result;
+
+                _ = shell.Run("cd", $"{name}.Infra")
+                    .AsResult().Result;
+
+                _ = shell.Run("dotnet", "new", "azureprojectinfra", "-n", name)
+                    .AsResult().Result;
+
+                _ = shell.Run("cd..")
+                    .AsResult().Result;
+
+                _ = shell.Run("dotnet", "new", "sln", "-n", name)
+                    .AsResult().Result;
+
+                _ = shell.Run("dotnet", "sln", "add", $"{name}.API/{name}.API.csproj")
+                    .AsResult().Result;
+
+                _ = shell.Run("dotnet", "sln", "add", $"{name}.Domain/{name}.Domain.csproj")
+                    .AsResult().Result;
+
+                _ = shell.Run("dotnet", "sln", "add", $"{name}.Infra/{name}.Infra.csproj")
+                    .AsResult().Result;
+
             } 
         }
     }
