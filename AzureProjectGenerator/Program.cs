@@ -124,10 +124,7 @@ namespace AzureProjectGenerator
                 var shell = new CShell();
                 Console.WriteLine("templatesPath = " + templatesPath);
 
-                _ = shell.Run("ls")
-                  .AsResult().Result;
-
-                _ = shell.ChangeFolder(templatesPath); // .Run("cd", templatesPath);
+                _ = shell.ChangeFolder(templatesPath);
 
                 _ = shell.Run("dotnet", "pack")
                     .AsResult().Result;
@@ -135,44 +132,37 @@ namespace AzureProjectGenerator
                 _ = shell.Run("dotnet", "new", "-i", "./bin/Debug/AzureProjectTemplate.1.0.0.nupkg")
                     .AsResult().Result;
 
-                _ = shell.Run("cd", output)
-                    .AsResult().Result;
+                _ = shell.ChangeFolder(output);
                 
                 _ = shell.Run("mkdir", $"{name}.API" )
                     .AsResult().Result;
 
-                _ = shell.Run("cd", $"{name}.API")
-                    .AsResult().Result;
+                _ = shell.ChangeFolder($"{name}.API");
 
                 _ = shell.Run("dotnet", "new", "azureprojectapi", "-n", name)
                     .AsResult().Result;
 
-                _ = shell.Run("cd", "..")
-                    .AsResult().Result;
+                _ = shell.ChangeFolder("..");
 
                 _ = shell.Run("mkdir", $"{name}.Domain")
                     .AsResult().Result;
 
-                _ = shell.Run("cd", $"{name}.Domain")
-                    .AsResult().Result;
+                _ = shell.ChangeFolder($"{name}.Domain");
 
                 _ = shell.Run("dotnet", "new", "azureprojectdomain", "-n", name)
                     .AsResult().Result;
 
-                _ = shell.Run("cd", "..")
-                    .AsResult().Result;
+                _ = shell.ChangeFolder("..");
 
                 _ = shell.Run("mkdir", $"{name}.Infra")
                     .AsResult().Result;
 
-                _ = shell.Run("cd", $"{name}.Infra")
-                    .AsResult().Result;
+                _ = shell.ChangeFolder($"{name}.Infra");
 
                 _ = shell.Run("dotnet", "new", "azureprojectinfra", "-n", name)
                     .AsResult().Result;
 
-                _ = shell.Run("cd", "..")
-                    .AsResult().Result;
+                _ = shell.ChangeFolder("..");
 
                 _ = shell.Run("dotnet", "new", "sln", "-n", name)
                     .AsResult().Result;
