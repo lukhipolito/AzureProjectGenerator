@@ -87,11 +87,11 @@ namespace AzureProjectGenerator
         private static void GeneratePack(OsConfig os, string name, string output)
         {
             string templatesPath = Directory.GetCurrentDirectory();
-            templatesPath = templatesPath.Split("bin")[0] + "Templates";
 
 
             if (os.isWindows)
             {
+                templatesPath = templatesPath.Split("bin")[0] + "Templates";
                 string script = $@"cd {templatesPath}
                         dotnet pack
                         dotnet new -i .\bin\Debug\AzureProjectTemplate.1.0.0.nupkg
@@ -120,6 +120,7 @@ namespace AzureProjectGenerator
             }
             else
             {
+                templatesPath = templatesPath.Split("bin")[0] + "/Templates";
                 var shell = new CShell();
                 Console.WriteLine("templatesPath = " + templatesPath);
                 _ = shell.Run("cd", templatesPath)
