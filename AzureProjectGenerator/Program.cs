@@ -127,7 +127,7 @@ namespace AzureProjectGenerator
                 _ = shell.Run("ls")
                   .AsResult().Result;
 
-                _ = shell.ChangeFolder(templatesPath)// .Run("cd", templatesPath);
+                _ = shell.ChangeFolder(templatesPath); // .Run("cd", templatesPath);
 
                 _ = shell.Run("dotnet", "pack")
                     .AsResult().Result;
