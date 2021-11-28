@@ -1,0 +1,50 @@
+parameters:
+  # Technologia cujo pipeline de CI/CD que deve ser usado
+  - name: technology
+    type: string
+    default: dotnetcore
+    values:
+    - dotnetcore
+
+trigger:
+  branches:
+    exclude: [ 'refs/heads/feature/*' ] # nomes de branchs que n�o ir�o rodar o pipeline
+  paths:
+    exclude: [ 'README.md' ] # caminhos de arquivos que n�o ir�o rodar o pipeline
+
+variables:
+- name: condition
+  value: $[or(and(eq(variables['Build.Reason'], 'PullRequest'), or(in(variables['System.PullRequest.TargetBranch'], 'refs/heads/master', 'refs/heads/uat', 'refs/heads/main'), startsWith(variables['System.PullRequest.TargetBranch'], 'refs/heads/release'), startsWith(variables['System.PullRequest.TargetBranch'], 'refs/heads/hotfix'))), and(ne(variables['Build.Reason'], 'Schedule'), or(in(variables['Build.SourceBranch'], 'refs/heads/master', 'refs/heads/uat', 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix'))))]
+
+- name: System.Debug
+  value: false
+
+- name: targetMaster
+  value: $[or(in(variables['Build.SourceBranch'], 'refs/heads/master', 'refs/heads/main'), in(variables['System.PullRequest.TargetBranch'], 'refs/heads/master', 'refs/heads/main'))]
+
+- name: runProduction
+  value: $[and(not(or(eq(variables['Build.Reason'], 'Schedule'), eq(variables['Build.Reason'], 'ScheduleForced'))), eq(variables['Build.SourceBranch'], 'refs/heads/master'))]
+
+- name: runProductionOnMain
+  value: $[and(not(or(eq(variables['Build.Reason'], 'Schedule'), eq(variables['Build.Reason'], 'ScheduleForced'))), in(variables['Build.SourceBranch'], 'refs/heads/master', 'refs/heads/main'))]
+
+- name: runCommitLint
+  value: $[and(ne('Github-CI', variables['System.TeamProject']), and(eq(variables['Build.Reason'], 'PullRequest'), in(variables['System.PullRequest.TargetBranch'], 'refs/heads/master', 'refs/heads/main')))]
+
+- name: runInstrumentationKeyCheck
+  value: $[and(ne('Github-CI', variables['System.TeamProject']), not(contains('[protheus,salesforce,sqlserver]', '${{parameters.technology}}')))]
+
+
+stages:
+- template: pipeline/core-template/main.yml
+  parameters:
+    technology: 'dotnetcore'
+    azResourceName: '{{azResourceName}}'
+    azWebAppName: '{{azWebAppName}}'
+    azSubscription: '{{azSubscription}}'
+    dotnetcoreDotNetVersion: '5.x'
+    dotnetcoreBuildProject: '**/*[API].csproj'
+    dotnetcoreBuildConfiguration: Release
+    dotnetcoreTestProject: '**/*[Tt]ests/*.csproj'
+    createsdk: 'true'
+    instrumentationKey: "00000000-0000-0000-0000-000000000000"

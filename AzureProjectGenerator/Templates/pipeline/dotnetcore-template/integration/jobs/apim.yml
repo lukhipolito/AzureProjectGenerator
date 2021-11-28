@@ -1,0 +1,100 @@
+parameters:
+- name: depends
+  default: null
+  type: object
+
+- name: condition
+  default: null
+  type: object
+
+- name: apimName
+  default: ""
+  type: string
+
+- name: apimResourceGroup
+  default: ""
+  type: string
+
+- name: apiName
+  default: ""
+  type: string
+
+- name: version
+  default: ""
+  type: string
+
+- name: url
+  default: ""
+  type: string
+
+- name: enviroment
+  default: ""
+  type: string
+
+jobs:
+
+- job: APIM
+  continueOnError: true
+  condition: ${{parameters.condition}}
+  dependsOn:  ${{parameters.depends}}
+  steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: openapi
+
+    - script: |
+        ls -la
+      displayName: Folder
+      workingDirectory: $(System.DefaultWorkingDirectory)
+
+    - task: AzureCLI@2
+      name: configure
+      displayName: 'Configure APIM'
+      env:
+        resourceGroupName: '${{ parameters.apimResourceGroup }}'
+        apimServiceName: '${{ parameters.apimName }}'
+        openapiSpecs: "../openapi.json"
+        apiGlobalPolicy: ""
+        apiPath: '${{ parameters.enviroment }}/${{ parameters.apiName }}'
+        apiId: '${{ parameters.apiName }}'
+        apiName: '${{ parameters.apiName }}'
+        apiVersion: '${{ parameters.version }}'
+        apiServiceUrl: '${{ parameters.url }}'
+      inputs:
+        azureSubscription: 'AmbienteCorporativoExterior'
+        scriptType: pscore
+        scriptLocation: inlineScript
+        inlineScript: |
+          Write-Host "[VERSION SET] Performing lookup. "
+          $versionSetLookup = az apim api versionset list --resource-group $env:resourceGroupName --service-name $env:apimServiceName | Where-Object { $_.DisplayName -eq "$env:apiName" }  | Sort-Object -Property ApiVersionSetId -Descending | Select-Object -first 1
+
+          if($versionSetLookup -eq $null)
+          {
+              Write-Host "[VERSION SET] Version set NOT FOUND for:  $($env:apiName), creating a new one. "
+              $versionSet = az apim api versionset create --resource-group $env:resourceGroupName --service-name $env:apimServiceName --display-name "$env:apiName" --versioning-scheme "Segment" --description "$env:apiName"
+              $versionSetId = $versionSet.Id
+              Write-Host "[VERSION SET] Created new version set, id:  $($versionSetId)"
+          }
+          else
+          {
+              Write-Host "[VERSION SET] Version set FOUND for: $($env:apiName), using existing one. "
+              $versionSetId = $versionSetLookup.ApiVersionSetId
+              Write-Host "[VERSION SET] Reusing existing versionset , id: $($versionSetId)"
+          }
+
+          # import api from OpenAPI Specs
+          Write-Host  "[IMPORT] Importing OpenAPI: $($env:openapiSpecs)"
+          $api = az apim api import --resource-group $env:resourceGroupName --service-name $env:apimServiceName --path $env:apiPath --specification-format OpenApi --specification-path "$env:openapiSpecs" --api-id "$env:apiId$env:apiVersion" --display-name "$env:apiName" --protocols https --service-url https://$env:apiServiceUrl
+          Write-Host "[IMPORT] Imported API: $($api.ApiId)" 
+          
+          # Apply Global Policy if existing
+          if (Test-Path $env:apiGlobalPolicy)
+          {
+              Write-Host "[POLICY] Global Policy found applying : $env:apiGlobalPolicy "
+              Set-AzApiManagementPolicy -Context $context -PolicyFilePath $env:apiGlobalPolicy -ApiId $api.ApiId
+              Write-Host "[POLICY] Global Policy applied. "
+          }
+          else
+          {
+              Write-Host "[POLICY] Global Policy NOT FOUND skipping : $env:apiGlobalPolicy "
+          }

@@ -1,0 +1,50 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alertName": {
+            "value": "New Multi-dimensional Metric Alert with Dynamic Thresholds (Replace with your alert name)"
+        },
+        "alertDescription": {
+            "value": "New multi-dimensional metric alert with Dynamic Thresholds created via template (Replace with your alert description)"
+        },
+        "alertSeverity": {
+            "value":3
+        },
+        "isEnabled": {
+            "value": true
+        },
+        "resourceId": {
+            "value": "/subscriptions/replace-with-subscription-id/resourceGroups/replace-with-resourcegroup-name/providers/Microsoft.Storage/storageAccounts/replace-with-storage-account"
+        },
+        "criterion": {
+            "value": {
+                    "criterionType": "DynamicThresholdCriterion",
+                    "name": "1st criterion",
+                    "metricName": "Transactions",
+                    "dimensions": [
+                        {
+                            "name":"ResponseType",
+                            "operator": "Include",
+                            "values": ["*"]
+                        },
+                        {
+                            "name":"ApiName",
+                            "operator": "Include",
+                            "values": ["GetBlob", "PutBlob"]
+                        }
+                    ],
+                    "operator": "GreaterOrLessThan",
+                    "alertSensitivity": "Medium",
+                    "failingPeriods": {
+                        "numberOfEvaluationPeriods": "4",
+                        "minFailingPeriodsToAlert": "3"
+                    },
+                    "timeAggregation": "Total"
+                }
+        },
+        "actionGroupId": {
+            "value": "/subscriptions/replace-with-subscription-id/resourceGroups/replace-with-resource-group-name/providers/Microsoft.Insights/actionGroups/replace-with-actiongroup-name"
+        }
+    }
+}

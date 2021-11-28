@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace AzureProjectTemplate.API
 {
+    //Teste
     [ExcludeFromCodeCoverage]
     public class Program
     {

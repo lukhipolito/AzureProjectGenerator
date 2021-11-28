@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alertName": {
+            "value": "Exemplo DevOps"
+        },
+        "alertDescription": {
+            "value": "Exemplo DevOps"
+        },
+        "alertSeverity": {
+            "value":3
+        },
+        "isEnabled": {
+            "value": true
+        },
+        "resourceId": {
+            "value": "/subscriptions/e3113b63-10ce-4ea4-8614-3ad0cafcf5da/resourceGroups/wizservices-hml-rg/providers/microsoft.insights/components/wizappconfig-hml-api"
+        },
+        "metricName": {
+            "value": "performanceCounters/processCpuPercentage"
+        },
+        "operator": {
+          "value": "GreaterThan"
+        },
+        "threshold": {
+            "value": "80"
+        },
+        "timeAggregation": {
+            "value": "Average"
+        },
+        "actionGroupId": {
+            "value": "/subscriptions/53fcc421-27f7-4164-9757-33dbe3adf2bf/resourceGroups/wizservices-prd-rg/providers/microsoft.insights/actiongroups/Application Insights Smart Detection"
+        }
+    }
+}

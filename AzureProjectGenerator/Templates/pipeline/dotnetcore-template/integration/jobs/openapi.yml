@@ -1,0 +1,118 @@
+parameters:
+- name: depends
+  default: null
+  type: object
+
+- name: condition
+  default: null
+  type: object
+
+- name: dotNetVersion
+  default: '5.x'
+  type: string
+
+- name: buildProject
+  default: '**[API].csproj'
+  type: string
+
+- name: buildConfiguration
+  default: 'Release'
+  type: string
+  values:
+  - Release
+  - Debug
+
+jobs:
+
+- job: OpenAPI
+  continueOnError: true
+  condition: ${{parameters.condition}}
+  dependsOn:  ${{parameters.depends}}
+  steps:
+    #- checkout: dotnetcoretemplate
+    #  path: openapitool
+
+    - checkout: self
+      path: source
+
+    - task: UseDotNet@2
+      displayName: 'Use dotnet ${{parameters.dotNetVersion}}'
+      inputs:
+        packageType: 'sdk'
+        version: '${{parameters.dotNetVersion}}'
+        workingDirectory: $(Agent.BuildDirectory)/source
+
+    - task: UseDotNet@2
+      displayName: 'Use dotnet 5.x'
+      inputs:
+        packageType: 'sdk'
+        version: '5.x'
+        workingDirectory: $(Agent.BuildDirectory)/source
+
+    - script: |
+        sudo npm install nswag@13.14.7 -g 
+        nswag version /runtime:Net50
+      displayName: Install NSwag
+      workingDirectory: $(System.DefaultWorkingDirectory)
+
+    - task: PowerShell@2
+      name: NSwag
+      displayName: Run NSwag
+      inputs:
+        targetType: 'inline'
+        workingDirectory: $(Agent.BuildDirectory)/source
+        script: |
+          pwd
+          
+          $csproj = Get-ChildItem -Path ./ -Recurse | Where-Object -FilterScript {$_.FullName -like '${{parameters.buildProject}}' -and $_.Name -NotLike "*.Infra.csproj"} | Select FullName, Name
+          Write-Output "$($csproj.FullName)"
+
+          dotnet restore
+          dotnet build
+                    
+          $proj = $csproj.Name -replace ".Api.csproj", ""
+          Write-Host "proj= $proj"
+          
+          Invoke-Expression -Command "sudo nswag run ./pipeline/dotnetcore-template/integration/jobs/nswag.json /variables:Configuration=Development,Proj=$($csproj.FullName),Namespace=Api.$($proj).Client,Name=$($proj)Client /runtime:Net50"
+          
+          cd ../../../
+          ls -Rla
+
+    - task: PowerShell@2
+      name: existopenapi
+      displayName: 'Exist OpenAPI'
+      inputs:
+        #ignoreLASTEXITCODE: true
+        targetType: 'inline'
+        script: |
+
+          $openapi = Get-ChildItem -Path ./ -Recurse | Where-Object -FilterScript {$_.Name -like 'openapi.json'} | Select FullName, Name
+          Write-Output "$($openapi.FullName)"
+
+
+          $fileExists = Test-Path -Path "$($openapi.FullName)"
+          Write-Output "$($fileExists)"
+          Write-Output "##vso[task.setvariable variable=FileExists;isOutput=true]$($fileExists)"
+          Write-Output $env:branch
+
+    - task: PublishBuildArtifacts@1
+      condition: and(succeeded(), eq(variables['existopenapi.FileExists'], 'True'))
+      inputs:
+        pathToPublish: $(Pipeline.Workspace)/source/pipeline/dotnetcore-template/integration/jobs/openapi.json
+        artifactName: openapi
+
+    - task: PublishBuildArtifacts@1 
+      condition: and(succeeded(), eq(variables['existopenapi.FileExists'], 'True'))
+      inputs:
+        pathToPublish: $(Pipeline.Workspace)/source/pipeline/dotnetcore-template/integration/jobs/OpenAPIClient.cs
+        artifactName: openapi
+
+    #- task: PublishBuildArtifacts@1
+    #  inputs:
+    #    pathToPublish: $(Build.Repository.LocalPath)/openapicode.xml
+    #    artifactName: openapi
+
+    #- task: PublishBuildArtifacts@1
+    #  inputs:
+    #    pathToPublish: $(Build.Repository.LocalPath)/openapicode.json
+    #    artifactName: openapi

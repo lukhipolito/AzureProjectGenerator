@@ -21,6 +21,12 @@ namespace AzureProjectTemplate.API.Controllers
             _customerService = customerService;
         }
 
+        [HttpGet("this")]
+        public ActionResult<string> GetThisAll()
+        {
+            return Ok("THIS!");
+        }
+
         /// <summary>
         /// Lista de clientes.
         /// </summary>

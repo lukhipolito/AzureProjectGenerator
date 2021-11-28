@@ -1,0 +1,186 @@
+# ASP.NET Core
+# Build a Web project that uses ASP.NET Core.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+# YAML reference:
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema
+parameters:
+
+  - name: deploymentType
+    type: string
+    default: 'webapp'
+    values:
+    - webapp
+    - iis
+
+  # Nome da subscription do azure que será criado o recurso
+  - name: azSubscription
+    default: null
+    type: string
+    
+  # Nome do web app de homlogação.
+  # Deve ser usado se o nome o webApp não seguir o formato {azResourceName}-hml-api
+  - name: azWebAppName
+    default: ""
+    type: string
+
+  # Nome da api no azure que fará parte da url
+  - name: azResourceName
+    default: null
+    type: string
+
+  # Tipo do recurso que será criado no azure
+  - name: appType
+    default: 'apiApp'
+    type: string
+
+  # Versão do framework .net core que a plicação utliza
+  - name: dotNetVersion
+    default: '3.x'
+    type: string
+
+  # Expressão de refêrencia para o projeto principal
+  - name: buildProject
+    default: '**/*[API].csproj'
+    type: string
+
+  # Configuração do em que o build vai ser executado
+  - name: buildConfiguration
+    default: 'Release'
+    type: string
+    values:
+    - Release
+    - Debug
+
+  # Expressão de refêrencia para o projeto de teste
+  - name: testProject
+    default: '**/*[Tt]ests.csproj'
+    type: string
+
+  # Define qual o job, stage precisa ocorrer com sucesso antes de dexecutar esse job
+  - name: depends
+    default: null
+    type: object
+
+  # Injetar services/containers no pipeline de build
+  - name: buildServices
+    default: null
+    type: object
+
+  # Injetar services/containers no pipeline de release
+  - name: releaseServices
+    default: null
+    type: object
+
+  # Condição para executar o build
+  - name: condition
+    default: null
+    type: object
+
+  # AppInsights Intrumentation Key
+  - name: instrumentationKey
+    default: ""
+    type: string
+
+  # IIS vm
+  - name: iisMachine
+    default: ""
+    type: string
+
+
+  # IIS folder wwwroot
+  - name: websitePhysicalPath
+    default: '%SystemDrive%\inetpub\wwwroot'
+    type: string
+
+  # IIS bind url
+  - name: bindings
+    default: true
+    type: boolean
+
+  # Informa ao pipeline se é para gerar um client SDK da api
+  - name: createSDK
+    default: false
+    type: boolean
+
+  # Indica se o SDK vai ser interno (WizCross) ou externo (nuget.org)
+  - name: feedType
+    default: 'internal'
+    type: string
+
+  # Configura a versão maior 1.x.x
+  - name: majorVersion
+    default: '1'
+    type: string
+
+  # Configura a versão menor x.0.x
+  - name: minorVersion
+    default: '0'
+    type: string
+
+  # Define parametros para passar ao ambiente do azure em UAT. ex: -API_URL example.com
+  - name: appSettings
+    default: ""
+    type: string
+
+  # URLs para adicionar como CORS
+  - name: cors
+    type: object
+
+
+stages:
+- template: integration/build.yml
+  parameters:
+    depends: ${{ parameters.depends }}
+    dotNetVersion: ${{parameters.dotNetVersion}}
+    buildProject: ${{parameters.buildProject}}
+    buildConfiguration: ${{parameters.buildConfiguration}}
+    testProject: ${{parameters.testProject}}
+    services: ${{parameters.buildServices}}
+    condition: ${{ parameters.condition }}
+
+- template: integration/documentation.yml
+  parameters:
+    depends: Build
+    condition: and(succeeded(), eq(dependencies.Build.outputs['OpenAPI.existopenapi.FileExists'], 'True'), ne(variables['build.Reason'], 'PullRequest'), not(eq(variables['Build.Reason'], 'Schedule')), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+
+- template: integration/clientsdk.yml
+  parameters:
+    depends: Build
+    condition: and(succeeded(),eq('${{ parameters.createSDK }}', true), eq(dependencies.Build.outputs['OpenAPI.existopenapi.FileExists'], 'True'), ne(variables['build.Reason'], 'PullRequest'), not(eq(variables['Build.Reason'], 'Schedule')), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
+    feedType: ${{parameters.feedType}}
+    majorVersion: ${{parameters.majorVersion}}
+    minorVersion: ${{parameters.minorVersion}}
+
+
+#Com qualidade vai para o ambiente "production"
+- stage: Production
+  jobs:
+    - ${{ if eq(parameters.deploymentType, 'webapp') }}:
+      - template: ../core-template/delivery/webapp.yml
+        parameters:
+          environment: 'production'
+          azSubscription: '${{parameters.azSubscription}}'
+          ${{ if parameters.azWebAppName }}:
+            azWebApp: '${{ parameters.azWebAppName }}'
+          ${{ if not(parameters.azWebAppName) }}:
+            azWebApp: '${{parameters.azResourceName}}-api'
+          azAppType: ${{parameters.appType}}
+          deployPackage: '$(Pipeline.Workspace)/drop/**/*.zip'
+          appSettings: -ASPNETCORE_ENVIRONMENT Production -APPINSIGHTS_INSTRUMENTATIONKEY ${{parameters.instrumentationKey}} -APPLICATIONINSIGHTS_CONNECTION_STRING InstrumentationKey=${{parameters.instrumentationKey}} -ApplicationInsightsAgent_EXTENSION_VERSION ~2 ${{parameters.appSettings}}
+          services: ${{parameters.releaseServices}}
+          configurationSettings: -http20Enabled true -minTlsVersion 1.2 -ftpsState Disabled -httpsOnly true -clientAffinityEnabled false
+          instrumentationKey: ${{parameters.instrumentationKey}}
+          cors: ${{ parameters.cors }}
+    - ${{ if eq(parameters.deploymentType, 'iis') }}:
+      - template: ../core-template/delivery/iis.yml
+        parameters:
+          environment: 'production'
+          ${{ if parameters.azWebAppName }}:
+            websiteName: '${{ parameters.azWebAppName }}'
+          ${{ if not(parameters.azWebAppName) }}:
+            websiteName: '${{parameters.azResourceName}}-api'
+          iisMachine: '${{parameters.iisMachine}}'
+          websitePhysicalPath: '${{parameters.websitePhysicalPath}}'
+          deployPackage: '$(Agent.BuildDirectory)\**\*API.zip'
+          bindings: ${{parameters.bindings}}

@@ -1,0 +1,243 @@
+[
+    {
+        "name": "A dependência NSwag.AspNetCore não pode estar em uma versão menor que a 13.*. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Atualizar-a-depend%C3%AAncia-NSwag.AspNetCore-para-13.-.aspx",
+        "id": "WIZ20210001",
+        "description": "A dependência NSwag.AspNetCore não pode estar em uma versão menor que a 13.*. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Atualizar-a-depend%C3%AAncia-NSwag.AspNetCore-para-13.-.aspx",
+        "recommendation": "Atualize o projeto API para NSwag.AspNetCore 13.*. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Atualizar-a-depend%C3%AAncia-NSwag.AspNetCore-para-13.-.aspx",
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "WIZ20210001",
+        "tags": [
+            "Wiz.Advisor.Dependency.Outdated"
+        ],
+        "applies_to": [
+            "CSharp Project"
+        ],
+        "patterns": [
+            {
+                "pattern": "\\bPackageReference.*(NSwag.AspNetCore).*.(11.*|12.*)",
+                "type": "regex",
+                "scopes": [
+                    "all"
+                ],
+                "modifiers" : ["i", "m"],
+                "_comment": ""
+            }
+        ]
+    },
+    {
+        "name": "Commit-lint with Husky. More info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Atualizar-commitlint.aspx",
+        "id": "WIZ20210002",
+        "description": "Do not target commitlint/cli versions less than 11.*. More info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Atualizar-commitlint.aspx",
+        "recommendation": "Do not target commitlint/cli versions less than 11.*. More info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Atualizar-commitlint.aspx",
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "WIZ20210002",
+        "tags": [
+            "Wiz.Advisor.Commit"
+        ],
+        "patterns": [
+            {
+                "pattern": ".commitlint.*.(10.*.*|9.*.*|8.*.*)/g",
+                "type": "regex",
+                "scopes": [
+                    "all"
+                ],
+                "modifiers" : ["i", "m"],
+                "_comment": ""
+            }
+        ]
+    },
+    {
+        "name": "Health check. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Configura%C3%A7%C3%A3o-do-healthcheck.aspx",
+        "id": "WIZ20210003",
+        "description": "É obrigatório a configuração do Health-check em memória. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Configura%C3%A7%C3%A3o-do-healthcheck.aspx",
+        "recommendation": "É obrigatório a configuração do Health-check em memória. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Configura%C3%A7%C3%A3o-do-healthcheck.aspx",
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "WIZ20210003",
+        "applies_to": [
+            "csharp"
+        ],
+        "tags": [
+            "Wiz.Advisor.Implementation.CSharp"
+        ],
+        "patterns": [
+            {
+                "pattern": "\\bAddHealthChecksUI",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "modifiers" : ["i", "m"],
+                "_comment": ""
+            }
+        ],
+        "conditions" : [
+            {
+                "pattern" : 
+                {
+                    "pattern": "\\bAddInMemoryStorage",
+                    "type": "regex",
+                    "scopes": [
+                        "code"
+                    ],
+                    "_comment": "É obrigatório a configuração do Health-check em memória."
+                },
+                "search_in":"finding-region(0,100)",
+                "negate_finding": true,
+                "_comment": "" 
+            },
+            {
+                "pattern" : 
+                {
+                    "pattern": "\\bMaximumHistoryEntriesPerEndpoint",
+                    "type": "regex",
+                    "scopes": [
+                        "code"
+                    ],
+                    "_comment": "É para incluir no máximo 6 registros."
+                },
+                "search_in":"finding-region(0,100)",
+                "negate_finding": false,
+                "_comment": "" 
+            }   
+        ]
+    },
+    {
+        "name": "Health check. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Configura%C3%A7%C3%A3o-do-healthcheck.aspx",
+        "id": "WIZ20210004",
+        "description": "É obrigatório ter um numero máximo de entrada do health-check. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Configura%C3%A7%C3%A3o-do-healthcheck.aspx",
+        "recommendation": "É obrigatório ter um numero máximo de entrada do health-check. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Configura%C3%A7%C3%A3o-do-healthcheck.aspx",
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "WIZ20210004",
+        "applies_to": [
+            "csharp"
+        ],
+        "tags": [
+            "Wiz.Advisor.Implementation.CSharp"
+        ],
+        "patterns": [
+            {
+                "pattern": "\\bAddHealthChecksUI",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "modifiers" : ["i", "m"],
+                "_comment": ""
+            }
+        ],
+        "conditions" : [
+            {
+                "pattern" : 
+                {
+                    "pattern": "\\bMaximumHistoryEntriesPerEndpoint",
+                    "type": "regex",
+                    "scopes": [
+                        "code"
+                    ],
+                    "_comment": "É para incluir no máximo 6 registros."
+                },
+                "search_in":"finding-region(0,100)",
+                "negate_finding": true,
+                "_comment": "" 
+            }   
+        ]
+    },
+    {
+        "name": "Declare a tag ServerGarbageCollection no arquivo Wiz.Template.API.csproj. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Otimizando-o-GC-para-o-ambiente-do-Azure.aspx",
+        "id": "WIZ20210007",
+        "description": "É obrigatório que a tag ServerGarbageCollection esteja declarada no arquivo Wiz.Template.API.csproj. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Otimizando-o-GC-para-o-ambiente-do-Azure.aspx",
+        "recommendation": "É obrigatório que a tag ServerGarbageCollection esteja declarada no arquivo Wiz.Template.API.csproj. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Otimizando-o-GC-para-o-ambiente-do-Azure.aspx",
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "WIZ20210007",
+        "tags": [
+            "Wiz.Advisor.Implementation.CSharp"
+        ],
+        "applies_to": [
+            "CSharp Project"
+        ],
+        "patterns": [
+            {
+                "pattern": "(<Project sdk=\"Microsoft.NET.Sdk.Web\")(?!.[\\s\\S]*?ServerGarbageCollection)(.[\\s\\S]*?)(<\/Project>)",
+                "type": "regex",
+                "scopes": [
+                    "all"
+                ],
+                "modifiers" : ["i", "m"],
+                "_comment": ""
+            }
+        ]
+    },
+    {
+        "name": "O valor da tag ServerGarbageCollection deve ser false. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Otimizando-o-GC-para-o-ambiente-do-Azure.aspx",
+        "id": "WIZ20210005",
+        "description": "É obrigatório que o valor da tag ServerGarbageCollection seja false.  Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Otimizando-o-GC-para-o-ambiente-do-Azure.aspx",
+        "recommendation": "É obrigatório que o valor da tag ServerGarbageCollection seja false.  Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/Otimizando-o-GC-para-o-ambiente-do-Azure.aspx",
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "WIZ20210005",
+        "tags": [
+            "Wiz.Advisor.Implementation.CSharp"
+        ],
+        "applies_to": [
+            "CSharp Project"
+        ],
+        "patterns": [
+            {
+                "pattern": "ServerGarbageCollection.*(true)",
+                "type": "regex",
+                "scopes": [
+                    "all"
+                ],
+                "modifiers" : ["i", "m"],
+                "_comment": ""
+            }
+        ]
+    },
+    {
+        "name": "Utilize o parâmetro HttpCompletionOption.ResponseHeadersRead para otimização das requisições GET com HttpClient. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/HttpClient--melhoria-de-performance-ao-otimizar-o-uso-de-mem%C3%B3ria.aspx",
+        "id": "WIZ20210006",
+        "description": "É obrigatório a utilização do parâmetro HttpCompletionOption.ResponseHeadersRead nas requisições GET utilizando HttpClient. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/HttpClient--melhoria-de-performance-ao-otimizar-o-uso-de-mem%C3%B3ria.aspx",
+        "recommendation": "É obrigatório a utilização do parâmetro HttpCompletionOption.ResponseHeadersRead nas requisições GET utilizando HttpClient. Mais info https://parcorretoradeseguros.sharepoint.com/sites/Gov.Met.Devz/SitePages/HttpClient--melhoria-de-performance-ao-otimizar-o-uso-de-mem%C3%B3ria.aspx",
+        "severity": "moderate",
+        "_comment": "",
+        "rule_info": "WIZ20210006",
+        "tags": [
+            "Wiz.Advisor.Implementation.CSharp"
+        ],
+        "applies_to": [
+            "csharp"
+        ],
+        "patterns": [
+            {
+                "pattern": "\\bGetAsync*.?[\\w.,@?^=%&:{}''~+#-].*",
+                "type": "regex",
+                "scopes": [
+                    "code"
+                ],
+                "modifiers" : ["i", "m"],
+                "_comment": ""
+            }
+        ],
+        "conditions" : [
+            {
+                "pattern" : 
+                {
+                    "pattern": "\\bResponseHeadersRead",
+                    "type": "regex",
+                    "scopes": [
+                        "code"
+                    ],
+                    "_comment": ""
+                },
+                "search_in":"finding-only",
+                "negate_finding": true,
+                "_comment": "" 
+            }   
+        ]
+    }
+]

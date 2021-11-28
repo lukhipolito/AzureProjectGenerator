@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/*/obj
+/.vs
+/test.API/bin
+/test.Domain/bin
+/test.Infra/bin
+/test.API/package-lock.json
+/pipeline/dotnetcore-template/integration/jobs/obj

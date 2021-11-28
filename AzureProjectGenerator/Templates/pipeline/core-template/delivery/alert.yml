@@ -1,0 +1,194 @@
+parameters:
+  - name: listOfAlertsDynamic
+    type: object
+    default:
+    - processCpuPercentage_dynamic
+    - dependenciesDuration_dynamic
+    - exceptionsPerSecond_dynamic
+    - memoryAvailableBytes_dynamic
+    - requestDuration_dynamic
+
+  - name: listOfAlertsStatic
+    type: object
+    default:
+    - processCpuPercentage_static
+
+  # Cria ou atualiza os alertas quando valor igual a true
+  - name: updateAlerts
+    default: false
+    type: boolean
+
+  # Subscription do Azure
+  - name: azureSubscriptionAI
+    default: null
+    type: string
+
+  # Injetar instrumentationKey do Application Insight
+  - name: instrumentationKey
+    default: null
+    type: string
+
+steps:
+  - ${{ if parameters.updateAlerts }}:
+    #- checkout: coretemplate
+    #  path: alert
+
+    - script: |
+        # List the tables in an Azure storage container.
+        storage_account="sagazstorage"
+        table_name="appinsights"
+        access_key="5HXWDMN4CUlAB0kOdBOEx6CPpW9WBPlq4XWDbkR2CuIwExjKjdPC+qF72cv4TQdHixsYjRyu0e0auVDkq9+m2A=="
+
+        table_store_url="table.core.windows.net"
+        authorization="SharedKey"
+
+        request_method="GET"
+        request_date=$(TZ=GMT LC_ALL=en_US.utf8 date "+%a, %d %h %Y %H:%M:%S %Z")
+        #request_date="Mon, 07 Apr 2020 13:16:09 GMT"
+        storage_service_version="2018-03-28"
+
+        # HTTP Request headers
+        x_ms_date_h="x-ms-date:$request_date"
+        x_ms_version_h="x-ms-version:$storage_service_version"
+
+        # Build the signature string
+        canonicalized_resource="/${storage_account}/${table_name}"
+
+
+        string_to_sign="${request_method}\n\n\n$request_date\n${canonicalized_resource}"
+
+        # Decode the Base64 encoded access key, convert to Hex.
+        decoded_hex_key="$(echo -n $access_key | base64 -d -w0 | xxd -p -c256)"
+
+
+        # Create the HMAC signature for the Authorization header
+        signature=$(printf "$string_to_sign" | openssl dgst -sha256 -mac HMAC -macopt "hexkey:$decoded_hex_key" -binary |  base64 -w0)
+
+        authorization_header="Authorization: $authorization $storage_account:$signature"
+
+        date_param=$(date '+%Y-%m-%d')
+        instrumentation_key="${{ parameters.instrumentationKey }}"
+
+        echo $instrumentation_key
+
+        row=$(curl -v -s -H "$authorization_header" -H "$x_ms_date_h" -H "$x_ms_version_h" -H "Content-Length: 0" -H "accept: application/json;odata=nometadata" "https://${storage_account}.${table_store_url}/${table_name}?%24filter=InstrumentationKey%20eq%20'${instrumentation_key}'%20and%20PartitionKey%20eq%20'${date_param}'&$select=InstrumentationKey%2CFullId%2CName")
+
+        echo $row
+
+        echo "##vso[task.setvariable variable=row;]${row}"
+
+      condition: eq(eq(variables['Build.SourceBranchName'], 'master'), 'True')
+      displayName: 'Query appinsights'
+      name: query
+
+    - ${{ each alert in parameters.listOfAlertsDynamic }}:
+      - task: PowerShell@2
+        condition: eq(eq(variables['Build.SourceBranchName'], 'master'), 'True')
+        continueOnError: true
+        name: processing${{ alert }}
+        displayName: 'Prepare ${{ alert }}'
+        inputs:
+          targetType: 'inline'
+          script: |
+            cd delivery/alerts/metrics
+            ls -la
+            pwd
+
+            $rowAppinsight = '$(row)' | ConvertFrom-Json
+
+            if ( $rowAppinsight.value.Count -gt 0 ){
+              Write-Host $rowAppinsight
+
+              $fullId = $rowAppinsight.value[0].FullId
+              $rg = ($rowAppinsight.value[0].FullId -split "/")[4]
+
+              Write-Host "##vso[task.setvariable variable=rg;]$($rg)"
+
+              $json = Get-Content -Path ./${{ alert }}.parameters.json
+              $params = $json | ConvertFrom-Json
+
+              $params.parameters.alertName.value = "$($params.parameters.alertName.value)"
+              $params.parameters.resourceId.value = $fullId
+
+              $params | ConvertTo-Json > currentParam.json
+            }
+            else {
+              Write-Host "##vso[task.logissue type=error]InstrumentationKey não encontrado"
+            }
+
+      - task: AzureCLI@2
+        condition: eq(eq(variables['Build.SourceBranchName'], 'master'), 'True')
+        continueOnError: true
+        displayName: 'Metrics ${{ alert }}'
+        inputs:
+          azureSubscription: '${{parameters.azureSubscriptionAI}}'
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            cd delivery/alerts/metrics
+            ls -la
+            pwd
+
+            echo $(rg)
+
+            az deployment group create \
+                --name '${{ alert }}${{ parameters.instrumentationKey }}' \
+                --resource-group $(rg) \
+                --template-file ../template/simpledynamicmetricalert.json \
+                --parameters @currentParam.json
+
+    - ${{ each alert in parameters.listOfAlertsStatic }}:
+      - task: PowerShell@2
+        condition: eq(eq(variables['Build.SourceBranchName'], 'master'), 'True')
+        continueOnError: true
+        name: processing${{ alert }}
+        displayName: 'Prepare ${{ alert }}'
+        inputs:
+          targetType: 'inline'
+          script: |
+            cd delivery/alerts/metrics
+            ls -la
+            pwd
+
+            $rowAppinsight = '$(row)' | ConvertFrom-Json
+
+            if ( $rowAppinsight.value.Count -gt 0 ){
+              Write-Host $rowAppinsight
+
+              $fullId = $rowAppinsight.value[0].FullId
+              $rg = ($rowAppinsight.value[0].FullId -split "/")[4]
+
+              Write-Host "##vso[task.setvariable variable=rg;]$($rg)"
+
+              $json = Get-Content -Path ./${{ alert }}.parameters.json
+              $params = $json | ConvertFrom-Json
+
+              $params.parameters.alertName.value = "$($params.parameters.alertName.value)"
+              $params.parameters.resourceId.value = $fullId
+
+              $params | ConvertTo-Json > currentParam.json
+            }
+            else {
+              Write-Host "##vso[task.logissue type=error]InstrumentationKey não encontrado"
+            }
+
+      - task: AzureCLI@2
+        condition: eq(eq(variables['Build.SourceBranchName'], 'master'), 'True')
+        continueOnError: true
+        displayName: 'Metrics ${{ alert }}'
+        inputs:
+          azureSubscription: '${{parameters.azureSubscriptionAI}}'
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            cd delivery/alerts/metrics
+            ls -la
+            pwd
+
+            echo $(rg)
+
+            az deployment group create \
+                --name '${{ alert }}${{ parameters.instrumentationKey }}' \
+                --resource-group $(rg) \
+                --template-file ../template/simplestaticmetricalert.json \
+                --parameters @currentParam.json

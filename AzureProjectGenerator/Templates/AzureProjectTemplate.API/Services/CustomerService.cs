@@ -17,15 +17,13 @@ namespace AzureProjectTemplate.API.Services
         private readonly ICustomerRepository _customerRepository;
         private readonly IViaCEPService _viaCEPService;
         private readonly IDomainNotification _domainNotification;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CustomerService(ICustomerRepository customerRepository, IViaCEPService viaCEPService, IDomainNotification domainNotification, IUnitOfWork unitOfWork, IMapper mapper)
+        public CustomerService(ICustomerRepository customerRepository, IViaCEPService viaCEPService, IDomainNotification domainNotification, IMapper mapper)
         {
             _customerRepository = customerRepository;
             _viaCEPService = viaCEPService;
             _domainNotification = domainNotification;
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -104,7 +102,6 @@ namespace AzureProjectTemplate.API.Services
             */
 
             _customerRepository.Add(model);
-            _unitOfWork.Commit();
 
             viewModel = _mapper.Map<CustomerViewModel>(model);
 
@@ -124,7 +121,6 @@ namespace AzureProjectTemplate.API.Services
             }
 
             _customerRepository.Update(model);
-            _unitOfWork.Commit();
         }
 
         public void Remove(CustomerViewModel customerVM)
@@ -140,7 +136,6 @@ namespace AzureProjectTemplate.API.Services
             }
 
             _customerRepository.Remove(model);
-            _unitOfWork.Commit();
         }
     }
 }

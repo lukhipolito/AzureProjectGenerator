@@ -1,0 +1,112 @@
+parameters:
+- name: dotNetVersion
+  default: '3.x'
+  type: string
+
+- name: buildProject
+  default: '**/*[API].csproj'
+  type: string
+
+- name: buildConfiguration
+  default: 'Release'
+  type: string
+  values:
+  - Release
+  - Debug
+
+- name: testProject
+  default: '**/*[Tt]ests.csproj'
+  type: string
+
+# Define qual o job, stage precisa ocorrer com sucesso antes de dexecutar esse job
+- name: depends
+  default: null
+  type: object
+
+# Injetar um service/container no pipeline
+- name: services
+  default: ""
+  type: object
+
+  # Condição para executar o build
+- name: condition
+  default: null
+  type: object
+
+stages:
+- stage: Build
+  condition: ${{ parameters.condition }}
+  dependsOn: ${{ parameters.depends }}
+  jobs:
+    - job: Build
+      ${{ if parameters.services }}:
+        services:
+          ${{parameters.services}}
+      steps:
+        # as tasks do sonar são dependentes do dotnet 2.x          
+        - task: UseDotNet@2
+          displayName: 'Use dotnet ${{parameters.dotNetVersion}}'
+          inputs:
+            packageType: 'sdk'
+            version: '${{parameters.dotNetVersion}}'
+
+        - task: UseDotNet@2
+          displayName: 'Use dotnet 5.x'
+          inputs:
+            packageType: 'sdk'
+            version: '5.x'
+
+        - task: DotNetCoreCLI@2
+          displayName: Build
+          inputs:
+            arguments: '--configuration ${{ parameters.buildConfiguration }}'
+            projects: '${{parameters.buildProject}}'
+
+        - task: DotNetCoreCLI@2
+          displayName: Test
+          inputs:
+            command: test
+            arguments: '--configuration ${{ parameters.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=opencovertests.xml /p:Exclude=[xunit*]* /p:ExcludeByAttribute="GeneratedCodeAttribute"'
+            projects: '${{parameters.testProject}}'
+
+        - task: DotNetCoreCLI@2
+          displayName: Publish API
+          inputs:
+            command: publish
+            arguments: '--configuration ${{parameters.buildConfiguration}} --output $(Build.ArtifactStagingDirectory)'
+            projects: '${{parameters.buildProject}}'
+            publishWebProjects: false
+            modifyOutputPath: true
+            zipAfterPublish: true
+
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish Artifact'
+          inputs:
+            pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+
+        - task: PowerShell@2
+          displayName: dll
+          name: dll
+          inputs:
+            ignoreLASTEXITCODE: true
+            targetType: 'inline'
+            script: |
+              $dll = Get-ChildItem -recurse | Where-Object -FilterScript {$_.Name -match "Wiz.*.(API|Function).dll"} | Select FullName -f 1
+              Write-Output "$($dll)"
+
+              $fileExists = Test-Path -Path "$($dll.FullName)"
+              Write-Output "$($fileExists)"
+
+              Write-Host "##vso[task.setvariable variable=DllName;]$($dll.FullName)"
+
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish Artifact'
+          inputs:
+            pathtoPublish: '$(DllName)'
+            artifactName: openapi
+
+    - template: jobs/openapi.yml
+      parameters:
+        buildProject: '${{parameters.buildProject}}'
+
+

@@ -45,7 +45,6 @@ using AzureProjectTemplate.Infra.Context;
 using AzureProjectTemplate.Infra.Identity;
 using AzureProjectTemplate.Infra.Repository;
 using AzureProjectTemplate.Infra.Services;
-using AzureProjectTemplate.Infra.UoW;
 
 namespace AzureProjectTemplate.API
 {
@@ -121,45 +120,37 @@ namespace AzureProjectTemplate.API
 
             this.RegisterHttpClient(services);
 
-            
-            //services.AddOpenApiDocument(document =>
-            //{
-            //    document.DocumentName = "v1";
-            //    document.Version = "v1";
-            //    document.Title = "AzureProjectTemplate API";
-            //    document.Description = "API de AzureProjectTemplate";
-            //    document.OperationProcessors.Add(new OperationSecurityScopeProcessor("JWT"));
-            //    document.AddSecurity("JWT", Enumerable.Empty<string>(), new OpenApiSecurityScheme
-            //    {
-            //        Type = OpenApiSecuritySchemeType.ApiKey,
-            //        Name = HeaderNames.Authorization,
-            //        Description = "Token de autenticação via SSO",
-            //        In = OpenApiSecurityApiKeyLocation.Header
-            //    });
 
-            //    document.PostProcess = (configure) =>
-            //    {
-            //        configure.Info.TermsOfService = "None";
-            //        configure.Info.Contact = new OpenApiContact()
-            //        {
-            //            Name = "Squad",
-            //            Email = "squad@xyz.com",
-            //            Url = "exemplo.xyz.com"
-            //        };
-            //        configure.Info.License = new OpenApiLicense()
-            //        {
-            //            Name = "Exemplo",
-            //            Url = "exemplo.xyz.com"
-            //        };
-            //    };
+            services.AddOpenApiDocument(document =>
+            {
+                document.DocumentName = "v1";
+                document.Version = "v1";
+                document.Title = "AzureProjectTemplate API";
+                document.Description = "API de AzureProjectTemplate";
 
+                document.PostProcess = (configure) =>
+                {
+                    configure.Info.TermsOfService = "None";
+                    configure.Info.Contact = new OpenApiContact()
+                    {
+                        Name = "Squad",
+                        Email = "squad@xyz.com",
+                        Url = "exemplo.xyz.com"
+                    };
+                    configure.Info.License = new OpenApiLicense()
+                    {
+                        Name = "Exemplo",
+                        Url = "exemplo.xyz.com"
+                    };
+                };
 
-            //});
+            });
 
+            //services.AddSwaggerDocument();
 
-            //services.AddAutoMapper(typeof(Startup));
+            services.AddAutoMapper(typeof(Startup));
+            services.AddHealthChecks();
             services.AddHttpContextAccessor();
-            //services.AddApplicationInsightsTelemetry();
 
             this.RegisterServices(services);
             this.RegisterDatabaseServices(services);
@@ -181,8 +172,8 @@ namespace AzureProjectTemplate.API
             app.UseResponseCompression();
 
 
-            //app.UseOpenApi();
-            //app.UseSwaggerUi3();
+            app.UseOpenApi();
+            app.UseSwaggerUi3();
 
 
             app.UseAuthorization();
@@ -234,23 +225,16 @@ namespace AzureProjectTemplate.API
 
             #region Service
             services.AddScoped<ICustomerService, CustomerService>();
-
             #endregion
 
             #region Domain
-
             services.AddScoped<IDomainNotification, DomainNotification>();
-
+            services.AddScoped<IViaCEPService, ViaCEPService>();
             #endregion
 
             #region Infra
-
-
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<IIdentityService, IdentityService>();
-
             #endregion
         }
 

@@ -1,0 +1,202 @@
+parameters:
+  # Technologia cujo pipeline de CI/CD que deve ser usado
+  - name: technology
+    type: string
+    values:
+    - dotnetcore
+
+  # Tipo de deployment. Pode ser 'webapp' ou 'storage'
+  - name: deploymentType
+    type: string
+    default: 'webapp'
+    values:
+    - webapp
+    - storage
+    - iis
+
+  # Prefixo do nome do recurso de deployment. Por exemplo:
+  # se os nomes dos seus webapps forem xpto-hml-web e xpto-prd-web
+  # ou dos seus storages forem xptohtmlstg e xptoprdstg,
+  # o azResourceName seria 'xpto'
+  - name: azResourceName
+    default: null
+    type: string
+
+  # AppInsights Intrumentation Key
+  - name: instrumentationKey
+    default: ""
+    type: string
+
+  # Nome do web app de homlogação.
+  # Deve ser usado somente se o deploymentType for 'webapp' e 
+  # se o nome o webApp não seguir o formato {azResourceName}-hml-web
+  - name: azWebAppName
+    default: ""
+    type: string
+
+  # Subscription Azure
+  - name: azSubscription
+    default: 'AmbientesDevHml'
+    type: string
+
+  # Injetar services/containers no pipeline de build
+  - name: buildServices
+    default: null
+    type: object
+
+  # Injetar services/containers no pipeline de release
+  - name: releaseServices
+    default: null
+    type: object
+
+  # Define parametros para passar ao ambiente do azure em UAT. ex: -API_URL example.com
+  - name: appSettings
+    default: ""
+    type: string
+
+  - name: verbose
+    default: false
+    type: boolean 
+
+  ########################
+  # Parâmetros .Net Core #
+  ########################
+
+  # Tipo do recurso que será criado no azure
+  - name: dotnetcoreAppType
+    default: 'apiApp'
+    type: string
+
+  # Versão do framework .net core que a aplicação utliza
+  - name: dotnetcoreDotNetVersion
+    default: '5.x'
+    type: string
+
+  # Expressão de refêrencia para o projeto principal
+  - name: dotnetcoreBuildProject
+    default: '**/*[API].csproj'
+    type: string
+
+  # Configuração do em que o build vai ser executado
+  - name: dotnetcoreBuildConfiguration
+    default: 'Release'
+    type: string
+    values:
+    - Release
+    - Debug
+
+  # Expressão de refêrencia para o projeto de teste
+  - name: dotnetcoreTestProject
+    default: '**/*[Tt]ests.csproj'
+    type: string
+
+  # IIS vm
+  - name: iisMachine
+    default: ""
+    type: string
+
+  # IIS folder wwwroot
+  - name: websitePhysicalPath
+    default: '%SystemDrive%\inetpub\wwwroot'
+    type: string
+
+  # IIS bind url
+  - name: bindings
+    default: true
+    type: boolean
+
+  # Informa ao pipeline se é para gerar um client SDK da api
+  - name: createSDK
+    default: false
+    type: boolean
+
+  # Indica se o SDK vai ser interno ou externo (nuget.org)
+  - name: feedType
+    default: 'internal'
+    type: string
+
+  # Configura a versão maior 1.x.x
+  - name: majorVersion
+    default: '1'
+    type: string
+
+  # Configura a versão menor x.0.x
+  - name: minorVersion
+    default: '0'
+    type: string
+
+  # Configura a versão menor x.0.x
+  - name: dotnetDeployPackage
+    default: '$(Agent.BuildDirectory)/drop/**/*Api.zip'
+    type: string
+
+  # URLs para adicionar como CORS
+  - name: cors
+    default: []
+    type: object
+
+
+stages:
+  - template: ../dotnetcore-template/dotnetcore.yml
+  - ${{ if parameters.verbose }}:
+    - stage: Verbose
+      variables:
+        targetBranchCompile: ${{variables['System.PullRequest.TargetBranch']}}
+        targetBranchRuntime: $[variables['System.PullRequest.TargetBranch']]
+        ou1: $[and(eq(variables['Build.Reason'], 'PullRequest'), or(in(variables['System.PullRequest.TargetBranch'], 'refs/heads/master', 'refs/heads/uat', 'refs/heads/main'), startsWith(variables['System.PullRequest.TargetBranch'], 'refs/heads/release'), startsWith(variables['System.PullRequest.TargetBranch'], 'refs/heads/hotfix')))]
+        ou1and1: $[eq(variables['Build.Reason'], 'PullRequest')]
+        ou1and2: $[or(in(variables['System.PullRequest.TargetBranch'], 'refs/heads/master', 'refs/heads/uat', 'refs/heads/main'), startsWith(variables['System.PullRequest.TargetBranch'], 'refs/heads/release'), startsWith(variables['System.PullRequest.TargetBranch'], 'refs/heads/hotfix'))]
+        ou1and2ou1: $[in(variables['System.PullRequest.TargetBranch'], 'refs/heads/master', 'refs/heads/uat', 'refs/heads/main')]
+        ou1and2ou2: $[startsWith(variables['System.PullRequest.TargetBranch'], 'refs/heads/release')]
+        ou1and2ou3: $[startsWith(variables['System.PullRequest.TargetBranch'], 'refs/heads/hotfix')]
+        ou2: $[or(in(variables['Build.SourceBranch'], 'refs/heads/master', 'refs/heads/uat', 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix'))]
+        conditionTrue: $[eq(variables.condition, 'True')]
+        conditionTrue2: $[eq(variables.condition, true)]
+        conditionalApim: $[and(not(eq(variables['Build.Reason'], 'Schedule')), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))]
+
+      jobs:
+        - job: Verbose
+          steps:
+            - script: | 
+                echo Build Reason: $(Build.Reason)
+                echo Source Branch: $(Build.SourceBranch)
+                echo Target Branch: $(System.PullRequest.TargetBranch)
+                echo Target Branch Compile: $(targetBranchCompile)
+                echo Target Branch Runtime: $(targetBranchRuntime)
+                echo ou1: $(ou1)
+                echo ou1and1: $(ou1and1)
+                echo ou1and2: $(ou1and2)
+                echo ou1and2ou1: $(ou1and2ou1)
+                echo ou1and2ou2: $(ou1and2ou2)
+                echo ou1and2ou3: $(ou1and2ou3)
+                echo ou2: $(ou2)
+                echo condition: $(condition)
+                echo conditionTrue: $(conditionTrue)
+                echo conditionTrue2: $(conditionTrue2)
+                echo conditionalApim: $(conditionalApim)
+
+  - ${{ if eq(parameters.technology, 'dotnetcore') }}:
+    - template: ../dotnetcore-template/cicd.yml
+      parameters:
+        condition: eq(variables.condition, 'True')
+        azResourceName: ${{ parameters.azResourceName }}
+        azWebAppName: ${{ parameters.azWebAppName }}
+        azSubscription: ${{ parameters.azSubscription }}
+        appSettings: ${{parameters.appSettings}}
+        appType: ${{ parameters.dotnetcoreAppType }}
+        dotNetVersion: ${{ parameters.dotnetcoreDotNetVersion }}
+        buildProject: ${{ parameters.dotnetcoreBuildProject }}
+        buildConfiguration: ${{ parameters.dotnetcoreBuildConfiguration }}
+        testProject: ${{ parameters.dotnetcoreTestProject }}
+        buildServices: ${{parameters.buildServices}}
+        releaseServices: ${{parameters.releaseServices}}
+        instrumentationKey: ${{parameters.instrumentationKey}}
+        iisMachine: ${{parameters.iisMachine}}
+        websitePhysicalPath: ${{parameters.websitePhysicalPath}}
+        bindings: ${{parameters.bindings}}
+        deploymentType: ${{parameters.deploymentType}}
+        createSDK: ${{parameters.createSDK}}
+        feedType: ${{parameters.feedType}}
+        majorVersion: ${{parameters.majorVersion}}
+        minorVersion: ${{parameters.minorVersion}}
+        cors: ${{parameters.cors}}

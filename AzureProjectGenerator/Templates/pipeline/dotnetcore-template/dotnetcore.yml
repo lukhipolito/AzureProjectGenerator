@@ -1,0 +1,79 @@
+parameters:
+- name: dotNetVersion
+  default: '3.x'
+  type: string
+
+- name: buildProject
+  default: '**/*[API].csproj'
+  type: string
+
+- name: buildConfiguration
+  default: 'Release'
+  type: string
+  values:
+  - Release
+  - Debug
+
+- name: testProject
+  default: '**/*[Tt]ests.csproj'
+  type: string
+
+- name: skipTests
+  default: false
+  type: boolean
+
+stages:
+- stage: run
+  displayName: Run
+  jobs:
+  - job: Run
+    steps:
+    # as tasks do sonar são dependentes do dotnet 2.x      
+    - task: UseDotNet@2
+      displayName: 'Use dotnet ${{parameters.dotNetVersion}}'
+      inputs:
+        packageType: 'sdk'
+        version: '${{parameters.dotNetVersion}}'
+
+    - task: UseDotNet@2
+      displayName: 'Use dotnet 5.x'
+      inputs:
+        packageType: 'sdk'
+        version: '5.x'
+
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        arguments: '--configuration ${{ parameters.buildConfiguration }}'
+        projects: '${{parameters.buildProject}}'
+
+    - ${{if eq(parameters.skipTests, false)}}:
+      - task: DotNetCoreCLI@2
+        displayName: Test
+        inputs:
+          command: test
+          arguments: '--configuration ${{ parameters.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:Exclude=[xunit*]*'
+          projects: '${{parameters.testProject}}'
+
+      - task: PublishCodeCoverageResults@1
+        displayName: 'Publish code coverage'
+        continueOnError: true
+        inputs:
+          codeCoverageTool: Cobertura
+          summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/*.xml'
+          reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+
+    - task: DotNetCoreCLI@2
+      displayName: Publish API
+      inputs:
+        command: publish
+        arguments: '--configuration ${{parameters.buildConfiguration}} --output $(Build.ArtifactStagingDirectory)'
+        projects: '${{parameters.buildProject}}'
+        publishWebProjects: false
+        modifyOutputPath: true
+        zipAfterPublish: true
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'

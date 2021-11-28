@@ -1,0 +1,45 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alertName": {
+            "value": "Alta taxa de erros"
+        },
+        "alertDescription": {
+            "value": "O produto apresenta um número alto de erros nos últimos minutos."
+        },
+        "alertSeverity": {
+            "value":2
+        },
+        "isEnabled": {
+            "value": true
+        },
+        "resourceId": {
+            "value": ""
+        },
+        "metricName": {
+            "value": "performanceCounters/exceptionsPerSecond"
+        },
+        "operator": {
+          "value": "GreaterThan"
+        },
+        "alertSensitivity": {
+            "value": "Medium"
+        },
+        "numberOfEvaluationPeriods": {
+            "value": "4"
+        },
+        "minFailingPeriodsToAlert": {
+            "value": "2"
+        },
+    "ignoreDataBefore": {
+            "value": ""
+        },
+        "timeAggregation": {
+            "value": "Average"
+        },
+        "actionGroupId": {
+            "value": "/subscriptions/53fcc421-27f7-4164-9757-33dbe3adf2bf/resourceGroups/wizservices-prd-rg/providers/microsoft.insights/actiongroups/Application Insights Smart Detection"
+        }
+    }
+}

@@ -1,0 +1,31 @@
+parameters:
+- name: depends
+  default: null
+  type: object
+
+- name: condition
+  default: null
+  type: object
+
+stages:
+- stage: Documentation
+  condition: ${{parameters.condition}}
+  dependsOn: ${{parameters.depends}}
+  jobs:
+  - job: Generator
+    steps:
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          artifact: openapi
+      - script: |
+          sudo npm install @openapitools/openapi-generator-cli -g
+        displayName: Install openapi-generator-cli
+        workingDirectory: $(System.DefaultWorkingDirectory)
+      - script: |
+          sudo openapi-generator-cli generate -i $(Pipeline.Workspace)/openapi.json -g markdown -o $(Build.Repository.LocalPath)/html --skip-validate-spec
+        displayName: Generate documentation
+        workingDirectory: $(System.DefaultWorkingDirectory)
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathToPublish: $(Build.Repository.LocalPath)/html
+          artifactName: html

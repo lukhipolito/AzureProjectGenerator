@@ -1,0 +1,53 @@
+parameters:
+- name: depends
+  default: null
+  type: object
+
+- name: condition
+  default: null
+  type: object
+
+- name: majorVersion
+  default: '1'
+  type: string
+
+- name: minorVersion
+  default: '0'
+  type: string
+
+stages:
+- stage: Contract
+  condition: ${{parameters.condition}}
+  dependsOn: ${{parameters.depends}}
+  jobs:
+  - job: Pact
+    variables:
+        sdkVersion: $[ stageDependencies.SDK.Build.outputs['setVersion.sdkVersion'] ]
+    steps:
+      - task: UseRubyVersion@0
+        inputs:
+          versionSpec: '>= 2.4'
+          addToPath: true
+
+      - script: gem install pact
+        displayName: 'gem install pact'
+
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          artifact: openapi
+
+      - script: |
+          sudo npm install swagger-mock-validator -g
+        displayName: Install swagger-mock-validator
+        workingDirectory: $(System.DefaultWorkingDirectory)
+
+      - script: |
+          tag = "uat"
+          if [[ "$env:branch" = "refs/heads/master" ] || [ "$env:branch" = "refs/heads/main" ]]; then
+            tag = "production"
+          fi
+          sudo swagger-mock-validator $(Pipeline.Workspace)/openapi.json https://sagaz.wizsolucoes.com.br/pact-broker/ --provider $(Build.Repository.Name) --tag tag --user wizzersagaz:P@ssW1Z3R
+        env:
+          branch : $[variables['Build.SourceBranch']]
+        displayName: "Pact Broker"
+        workingDirectory: $(System.DefaultWorkingDirectory)

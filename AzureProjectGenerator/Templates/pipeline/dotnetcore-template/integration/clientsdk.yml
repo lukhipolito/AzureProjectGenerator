@@ -1,0 +1,97 @@
+parameters:
+- name: depends
+  default: null
+  type: object
+
+- name: condition
+  default: null
+  type: object
+
+- name: feedType
+  default: 'internal'
+  type: string
+
+- name: majorVersion
+  default: '1'
+  type: string
+
+- name: minorVersion
+  default: '0'
+  type: string
+
+
+stages:
+- stage: SDK
+  condition: ${{parameters.condition}}
+  dependsOn: ${{parameters.depends}}
+  jobs:
+    - job: Build
+      steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifact: openapi
+
+        - task: PowerShell@2
+          displayName: 'Set Version'
+          name: setVersion
+          env:
+            majorVersion: ${{parameters.majorVersion}}
+            minorVersion: ${{parameters.minorVersion}}
+            branch : $[variables['Build.SourceBranch']]
+          inputs:
+            targetType: 'inline'
+            script: |
+              $directory = Get-ChildItem -Directory -recurse | Where-Object -FilterScript {$_.Name -like "*.API"} | Select FullName -f 1
+
+              cd $directory.FullName
+
+              $csproj = Get-ChildItem | Where-Object -FilterScript {$_.Name.EndsWith('.csproj')} | Select Name, FullName -f 1
+
+              Write-Output "$($csproj.FullName)"
+              
+              $sufix = '-rc'
+
+              Write-Output $env:branch
+
+              if ( ($env:branch -eq 'refs/heads/master') -or ($env:branch -eq 'refs/heads/main') ) {
+                $sufix = ''
+              }
+
+              [xml] $xdoc = Get-Content $csproj.FullName
+              #$xdoc.Project.PropertyGroup.Version = "$($env:majorVersion).$($env:minorVersion).$(Build.BuildId).0$($sufix)"
+              #$xdoc.Project.PropertyGroup.VersionPrefix = "$($env:majorVersion).$($env:minorVersion).$(Build.BuildId).0$($sufix)"
+              #$xdoc.Project.PropertyGroup.AssemblyVersion = "$($env:majorVersion).$($env:minorVersion).$(Build.BuildId).0$($sufix)"
+              #$xdoc.Project.PropertyGroup.FileVersion = "$($env:majorVersion).$($env:minorVersion).$(Build.BuildId).0$($sufix)"
+
+              $xdoc.Save($csproj.FullName)
+
+              Write-Host "##vso[task.setvariable variable=sdkVersion;isOutput=true]$($env:majorVersion).$($env:minorVersion).$(Build.BuildId).0$($sufix)"
+
+        - task: PublishBuildArtifacts@1
+          inputs:
+            pathToPublish: $(Build.Repository.LocalPath)
+            artifactName: sdk
+
+        - task: DotNetCoreCLI@2
+          displayName: 'dotnet build'
+          inputs:
+            command: 'build'
+            arguments: '--configuration Release'
+            projects: '$(Build.Repository.LocalPath)/**/**.csproj'
+            versioningScheme: 'ByPrereleaseNumber'
+            majorVersion: ${{parameters.majorVersion}}
+            minorVersion: ${{parameters.minorVersion}}
+            patchVersion: '$(Build.BuildId)'
+
+        - task: DotNetCoreCLI@2
+          displayName: "dotnet pack"
+          inputs:
+            command: 'pack'
+            arguments: '--configuration Release'
+            configuration: 'Release'
+            packagesToPack: '$(Build.Repository.LocalPath)/**/**.csproj'
+            nobuild: true
+            versioningScheme: 'ByPrereleaseNumber'
+            majorVersion: ${{parameters.majorVersion}}
+            minorVersion: ${{parameters.minorVersion}}
+            patchVersion: '$(Build.BuildId)'

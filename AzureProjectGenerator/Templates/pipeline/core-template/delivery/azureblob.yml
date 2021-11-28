@@ -1,0 +1,59 @@
+parameters:
+    # environment do Azure DevOps com as regras de deploy
+    - name: environment
+      type: string
+    # Subscription do Azure
+    - name: azSubscription
+      type: string
+    # Nome do Storage
+    - name: azStorage
+      type: string
+    # Caminho do zip criado pelo build
+    - name: deployPath
+      type: string
+    # Define qual o job, stage precisa ocorrer com sucesso antes de dexecutar esse job
+    - name: depends
+      default: null
+      type: object
+    # Injetar services/containers no pipeline
+    - name: services
+      default: ""
+      type: object
+    # Injetar instrumentationKey no pipeline
+    - name: instrumentationKey
+      default: ""
+      type: string
+
+jobs:
+    - deployment:
+      ${{ if parameters.services }}:
+        services:
+          ${{parameters.services}}
+      dependsOn: ${{parameters.depends}}
+      environment: ${{parameters.environment}}
+      pool:
+        vmImage: 'windows-latest'
+      strategy:
+        runOnce:
+            deploy:
+                steps:
+                    - task: AzureFileCopy@4
+                      inputs:
+                        SourcePath: '${{parameters.deployPath}}'
+                        azureSubscription: '${{parameters.azSubscription}}'
+                        Destination: 'AzureBlob'
+                        storage: '${{parameters.azStorage}}'
+                        ContainerName: '$web'
+
+
+    - job: Alerts
+      pool:
+        vmImage: 'ubuntu-latest'
+      
+      steps:
+
+        - template: alert.yml
+          parameters:
+            azureSubscriptionAI: ${{ parameters.azSubscription }}
+            instrumentationKey: ${{ parameters.instrumentationKey }}
+            updateAlerts: ${{ startsWith(parameters.environment, 'Production') }}

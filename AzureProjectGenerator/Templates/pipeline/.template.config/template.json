@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Lucas Hip�lito",
+  "classifications": [ "Web", "Azure", "Pipeline", "Yml" ],
+  "identity": "AzureProjectTemplate.pipeline",
+  "name": "Azure project generator pipelines config",
+  "shortName": "azureprojectpipeline",
+  "sourceName": "AzureProjectTemplate",
+  "tags": {
+    "language": "yml",
+    "type": "project"
+  }
+}

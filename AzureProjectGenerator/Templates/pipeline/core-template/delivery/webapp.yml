@@ -1,0 +1,103 @@
+parameters:
+    # environment do Azure DevOps com as regras de deploy
+    - name: environment
+      type: string
+
+    # Subscription do Azure
+    - name: azSubscription
+      type: string
+
+    # Nome do WebApp
+    - name: azWebApp
+      type: string
+
+    # Tipo do WebApp (webApp, webAppLinux, webAppContainer, functionApp, functionAppLinux, functionAppContainer, apiApp, mobileApp )
+    - name: azAppType
+      default: 'webApp'
+      type: string
+
+    # Caminho do zip criado pelo build
+    - name: deployPackage
+      default: '$(Pipeline.Workspace)/drop/**/*.zip'
+      type: string
+
+    # Define qual o job, stage precisa ocorrer com sucesso antes de dexecutar esse job
+    - name: depends
+      default: null
+      type: object
+
+    # Define parametros do settings para passar ao ambiente do azure. ex: -ASPNETCORE_ENVIRONMENT Staging
+    - name: appSettings
+      default: ""
+      type: string
+
+    # Define parametros do settings para passar ao ambiente do azure. ex: -linuxFxVersion: node|6.11
+    - name: configurationSettings
+      default: ""
+      type: string
+
+    # Injetar services/containers no pipeline
+    - name: services
+      default: ""
+      type: object
+
+    # Injetar instrumentationKey do Application Insight
+    - name: instrumentationKey
+      default: ""
+      type: string
+
+    # Injetar instrumentationKey do Application Insight
+    - name: startUpCommand
+      default: ""
+      type: string
+
+    # URLs para adicionar como CORS
+    - name: cors
+      type: object
+
+jobs:
+    - deployment:
+      displayName: 'WebAppDeployment'
+      ${{ if parameters.services }}:
+        services:
+          ${{parameters.services}}
+      environment: '${{parameters.environment}}'
+      dependsOn: ${{parameters.depends}}
+      pool:
+        vmImage: 'ubuntu-latest'
+      strategy:
+        runOnce:
+            deploy:                              
+                steps:
+                - task: AzureRmWebAppDeployment@4
+                  displayName: Publish 
+                  inputs:
+                    ConnectionType: 'AzureRM'
+                    azureSubscription: '${{parameters.azSubscription}}'
+                    appType: '${{parameters.azAppType}}'
+                    WebAppName: '${{parameters.azWebApp}}'
+                    packageForLinux: '${{parameters.deployPackage}}'
+                    AppSettings: ${{parameters.appSettings}}
+                    startUpCommand: ${{parameters.startUpCommand}}
+                    ConfigurationSettings: ${{parameters.configurationSettings}}
+
+
+    - job: CORS
+      steps:
+        - template: cors.yml
+          parameters:
+            azSubscription: ${{ parameters.azSubscription }}
+            instrumentationKey: ${{ parameters.instrumentationKey }}
+            cors: ${{ parameters.cors }}
+
+
+    - job: Alerts
+      pool:
+        vmImage: 'ubuntu-latest'
+      
+      steps:
+        - template: alert.yml
+          parameters:
+            azureSubscriptionAI: ${{ parameters.azSubscription }}
+            instrumentationKey: ${{ parameters.instrumentationKey }}
+            updateAlerts: ${{ startsWith(parameters.environment, 'Production') }}

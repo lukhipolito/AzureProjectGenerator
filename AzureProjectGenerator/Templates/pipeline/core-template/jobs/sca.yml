@@ -1,0 +1,73 @@
+parameters:
+- name: technology
+  default: null
+  type: string
+
+- name: depends
+  default: null
+  type: object
+
+- name: buildProject
+  default: '**/*[API].csproj'
+  type: string
+
+- name: dotNetVersion
+  default: '3.x'
+  type: string
+
+# o valor pode ser true ou false
+- name: disable
+  default: true 
+  type: boolean
+
+jobs:
+    - job: SCA
+      dependsOn: ${{parameters.depends}}
+      continueOnError: true
+      steps:
+
+      ##########################
+      # Parâmetros dotnet core #
+      ##########################
+
+      - ${{ if eq(parameters.technology, 'dotnetcore') }}:
+        - script: |
+            dotnet new tool-manifest
+            dotnet tool update CycloneDX
+
+            dotnet tool list
+          displayName: Install
+          workingDirectory: $(System.DefaultWorkingDirectory)
+
+        - task: UseDotNet@2
+          displayName: 'Use dotnet ${{parameters.dotNetVersion}}'
+          inputs:
+            packageType: 'sdk'
+            version: '${{parameters.dotNetVersion}}'
+
+        - task: UseDotNet@2
+          displayName: 'Use dotnet 5.x'
+          inputs:
+            packageType: 'sdk'
+            version: '5.x'
+
+
+      - ${{ if eq(parameters.technology, 'dotnetcore') }}:
+        - task: PowerShell@2
+          name: processing
+          displayName: Processing
+          inputs:
+             targetType: 'inline'
+             script: |
+              $sln = Get-ChildItem -recurse | Where-Object -FilterScript {$_.Name -match "Wiz.*.sln"} | Select FullName, DirectoryName -f 1
+              
+              cd $sln.DirectoryName
+              pwd
+              
+              Write-Output "$($sln)"
+
+              dotnet tool restore
+
+              Write-Output 'Restored'
+
+              dotnet tool run dotnet-CycloneDX $sln.FullName -o ./

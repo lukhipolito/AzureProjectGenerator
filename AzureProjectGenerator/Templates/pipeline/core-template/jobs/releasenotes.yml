@@ -1,0 +1,30 @@
+jobs:
+    - job: ReleaseNotes
+      displayName: Release Notes
+      continueOnError: true
+      steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.9'
+            displayName: 'Use Python 3.9'
+
+          - script: |
+              python -m pip install --upgrade pip
+              python -m pip install --upgrade setuptools
+              pip install keyring artifacts-keyring
+            displayName: Install Dependencies
+
+          - task: PipAuthenticate@1
+            inputs:
+              artifactFeeds: 'WizCross'
+              onlyAddExtraIndex: true
+
+          - script: |
+              pip install getulio==0.0.1
+              getulio release-notes $(System.TeamProject) create $(Build.BuildId)
+              echo $(System.TeamProject)
+              echo $(Build.BuildId)
+            displayName: Getulio CLI
+            env:
+              'AZDEVOPS_ORG_SERVICE_URL': '$(System.CollectionUri)'
+              'AZDEVOPS_PERSONAL_ACCESS_TOKEN': '$(System.AccessToken)'

@@ -4,7 +4,7 @@ namespace AzureProjectTemplate.Domain.Models
 {
     public class Customer
     {
-        protected Customer() { }
+        public Customer() { }
 
         public Customer(int id, int addressId, string name) : this(addressId, name)
         {

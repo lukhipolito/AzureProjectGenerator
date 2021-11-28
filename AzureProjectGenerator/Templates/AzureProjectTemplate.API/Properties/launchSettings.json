@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "AzureProjectTemplate.API": {
+    "Wiz.Mais.Marketplace.API": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

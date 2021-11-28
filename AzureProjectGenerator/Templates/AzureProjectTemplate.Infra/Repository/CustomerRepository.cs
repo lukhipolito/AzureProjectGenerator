@@ -9,12 +9,11 @@ using AzureProjectTemplate.Infra.Context;
 
 namespace AzureProjectTemplate.Infra.Repository
 {
-    public class CustomerRepository : EntityBaseRepository<Customer>, ICustomerRepository
+    public class CustomerRepository : ICustomerRepository
     {
         private readonly DapperContext _dapperContext;
 
-        public CustomerRepository(EntityContext context, DapperContext dapperContext)
-            : base(context)
+        public CustomerRepository(DapperContext dapperContext)
         {
             _dapperContext = dapperContext;
         }
@@ -58,6 +57,26 @@ namespace AzureProjectTemplate.Infra.Repository
                           WHERE c.Name = @Name";
 
             return (await _dapperContext.DapperConnection.QueryAsync<CustomerAddress>(query, new { Name = name })).FirstOrDefault();
+        }
+
+        public void Add(Customer obj)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Update(Customer obj)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Remove(Customer obj)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

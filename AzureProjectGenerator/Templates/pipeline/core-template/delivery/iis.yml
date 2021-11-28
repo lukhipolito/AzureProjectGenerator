@@ -1,0 +1,142 @@
+parameters:
+  # environment do Azure DevOps com as regras de deploy
+  - name: environment
+    type: string
+
+  # Nome da VM com o IIS
+  - name: iisMachine
+    type: string
+
+  # Nome do website
+  - name: websiteName
+    type: string
+
+  # URL do website
+  - name: websiteUrl
+    type: string
+    default: ''
+
+  # Tipo de deploy no IIS
+  - name: iisDeploymentType
+    type: string
+    default: 'IISWebsite'
+    values:
+      - IISWebsite
+      - IISWebApplication
+      - IISVirtualDirectory
+      - IISApplicationPool
+
+  # Caminho dos arquivos no IIS
+  - name: websitePhysicalPath
+    type: string
+    default: '%SystemDrive%\inetpub\wwwroot'
+
+  # Versão do .NET Framework para execução da aplicação
+  - name: dotNetVersion
+    type: string
+    default: 'v4.0'
+    values:
+      - v4.0
+      - v2.0
+      - No Managed Code
+
+  # Modo do pipeline
+  - name: pipeLineMode
+    type: string
+    default: 'Integrated'
+    values:
+      - Integrated
+      - Classic
+
+  # Thumbprint do certificado SSL (padrão *.wizsolucoes.com.br)
+  - name: sslThumbprint
+    type: string
+    default: D7ABF16ACEEA18735015A5F40971F085938A2A7A
+
+  # Caminho do zip criado pelo build
+  - name: deployPackage
+    default: '$(Pipeline.Workspace)\**\*API.zip'
+    type: string
+
+  # Realizar substituição das variáveis dos arquivos de configuração
+  - name: bindings
+    default: false
+    type: boolean
+
+  # Realizar substituição das variáveis dos arquivos de configuração
+  - name: xmlVariableSubstitution
+    default: true
+    type: boolean
+
+  # Realizar transformação de XML no arquivo de configuração
+  - name: xmlTransformation
+    default: false
+    type: boolean
+
+  # Define qual o job, stage precisa ocorrer com sucesso antes de dexecutar esse job
+  - name: depends
+    default: null
+    type: object
+
+  # Injetar services/containers no pipeline
+  - name: services
+    default: ""
+    type: object
+
+jobs:
+  - deployment: deploymentCheck
+    environment: '${{parameters.environment}}'
+    dependsOn: ${{parameters.depends}}
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - script: |
+                echo ""
+  - job: Deploy
+    ${{ if parameters.services }}:
+      services:
+        ${{parameters.services}}
+    dependsOn: deploymentCheck
+    pool:
+      name: IISPool
+      demands:
+        - agent.name -equals ${{ parameters.iisMachine }}
+    steps:
+      - task: DownloadPipelineArtifact@2
+      - task: IISWebAppManagementOnMachineGroup@0
+        displayName: 'IIS Web App Create'
+        inputs:
+          IISDeploymentType: '${{ parameters.IISDeploymentType }}'
+          ${{ if ne(parameters.websiteUrl, '') }}:
+            WebsiteName: '${{ parameters.websiteUrl }}'
+            ${{ if parameters.bindings }}:
+              Bindings: '{"bindings":[{"protocol":"http","ipAddress":"*","port":"80","hostname":"${{ parameters.websiteUrl }}"},{"protocol":"https","ipAddress":"*","port":"443","hostname":"${{ parameters.websiteUrl }}","sslThumbprint":"${{ parameters.sslThumbprint }}","sniFlag":true}]}'
+            AppPoolNameForWebsite: '${{ parameters.websiteUrl }}'
+            AppPoolName: '${{ parameters.websiteUrl }}'
+          ${{ if eq(parameters.websiteUrl, '') }}:
+            WebsiteName: '${{ parameters.websiteName }}.wizsolucoes.com.br'
+            ${{ if parameters.bindings }}:
+              Bindings: '{"bindings":[{"protocol":"http","ipAddress":"*","port":"80","hostname":"${{ parameters.websiteName }}.wizsolucoes.com.br"},{"protocol":"https","ipAddress":"*","port":"443","hostname":"${{ parameters.websiteName }}.wizsolucoes.com.br","sslThumbprint":"${{ parameters.sslThumbprint }}","sniFlag":true}]}'
+            AppPoolNameForWebsite: '${{ parameters.websiteName }}.wizsolucoes.com.br'
+            AppPoolName: '${{ parameters.websiteName }}.wizsolucoes.com.br'
+          WebsitePhysicalPath: '${{ parameters.websitePhysicalPath }}\${{ parameters.websiteName }}'
+          AddBinding: ${{ parameters.bindings }}
+          DotNetVersion: '${{ parameters.dotNetVersion }}'
+          DotNetVersionForApplication: '${{ parameters.dotNetVersion }}'
+          PipeLineMode: '${{ parameters.pipeLineMode }}'
+          PipeLineModeForApplication: '${{ parameters.pipeLineMode }}'
+          CreateOrUpdateAppPoolForWebsite: true
+          ParentWebsiteNameForVD: '${{ parameters.websiteName }}'
+          ParentWebsiteNameForApplication: '${{ parameters.websiteName }}'
+      - task: IISWebAppDeploymentOnMachineGroup@0
+        displayName: 'IIS Web App Deploy'
+        inputs:
+          ${{ if ne(parameters.websiteUrl, '') }}:
+            WebsiteName: '${{ parameters.websiteUrl }}'
+          ${{ if eq(parameters.websiteUrl, '') }}:
+            WebsiteName: '${{ parameters.websiteName }}.wizsolucoes.com.br'
+          Package: '${{ parameters.deployPackage }}'
+          TakeAppOfflineFlag: true
+          XmlVariableSubstitution: ${{ parameters.xmlVariableSubstitution }}
+          XmlTransformation: ${{ parameters.xmlTransformation }}
