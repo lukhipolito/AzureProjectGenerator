@@ -88,39 +88,40 @@ namespace AzureProjectGenerator
             Console.WriteLine($"Is mac: {osConfig.isMac}");
             Console.WriteLine("");
 
+            var input = string.Empty;
             Console.WriteLine("Please enter the following:");
-            Console.WriteLine("Azure account user: ");
-            var input =  Console.ReadLine();
-            while (string.IsNullOrEmpty(input))
-            {
-                Console.WriteLine("please provide a valid username");
-                input = Console.ReadLine();
-            }
+            //Console.WriteLine("Azure account user: ");
+            //input =  Console.ReadLine();
+            //while (string.IsNullOrEmpty(input))
+            //{
+            //    Console.WriteLine("please provide a valid username");
+            //    input = Console.ReadLine();
+            //}
 
-            azureUser = input;
-            Console.WriteLine("");
+            //azureUser = input;
+            //Console.WriteLine("");
 
-            Console.WriteLine("Azure account password: ");
-            input = Console.ReadLine();
-            while (string.IsNullOrEmpty(input))
-            {
-                Console.WriteLine("please provide a valid password");
-                input = Console.ReadLine();
-            }
+            //Console.WriteLine("Azure account password: ");
+            //input = Console.ReadLine();
+            //while (string.IsNullOrEmpty(input))
+            //{
+            //    Console.WriteLine("please provide a valid password");
+            //    input = Console.ReadLine();
+            //}
 
-            azurePassword = input;
-            Console.WriteLine("");
+            //azurePassword = input;
+            //Console.WriteLine("");
 
-            Console.WriteLine("Region: ");
-            input = Console.ReadLine();
-            while (string.IsNullOrEmpty(input))
-            {
-                Console.WriteLine("please provide a valid region");
-                input = Console.ReadLine();
-            }
+            //Console.WriteLine("Region: ");
+            //input = Console.ReadLine();
+            //while (string.IsNullOrEmpty(input))
+            //{
+            //    Console.WriteLine("please provide a valid region");
+            //    input = Console.ReadLine();
+            //}
 
-            azureRegion = input;
-            Console.WriteLine("");
+            //azureRegion = input;
+            //Console.WriteLine("");
 
             Console.WriteLine("Subscription ID: ");
             input = Console.ReadLine();
